@@ -32,7 +32,6 @@ export class EmailController {
                 return res.status(401).json({ message: "Debe proporcinonar una clave de API" })
             }
             const { email, name, message, html } = req.body;
-            console.log(req.body)
             if (!email || !name || !message || !html) {
                 return res.status(400).json({ message: "Favor enviar todos los datos" })
             }
