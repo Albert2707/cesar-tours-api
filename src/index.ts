@@ -2,30 +2,33 @@ import express, { Express, json } from "express";
 import { config } from "dotenv";
 import { emailRouter } from "./routes/email.route";
 import cors from "cors";
-import { dataSource } from "./ormconfig";
+import { dataSource } from "./config/ormconfig";
 import "reflect-metadata";
-import { getManager } from "typeorm";
+import cookieParser from "cookie-parser";
 import { vehicleRouter } from "./routes/vehicle.route";
+import { userRouter } from "./routes/user.route";
 config();
 const app: Express = express();
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = ["*"];
 
 const options: cors.CorsOptions = {
-  origin: allowedOrigins,
+  origin: "*",
+  credentials: true,
 };
+app.use(cookieParser());
 app.use(cors(options));
+
 app.use(json());
 app.use("/api/email", emailRouter);
 app.use("/api/vehicle", vehicleRouter);
+app.use("/api/user", userRouter);
+
 dataSource
   .initialize()
   .then(async () => {
-    const e = await dataSource.manager.query("select 2 +2 as sum");
-    console.log(e[0]);
-    app.listen(process.env.PORT || 3000, () => {
+    app.listen(3000, () => {
       console.log("Server is runnnig on port:" + process.env.PORT || 3000);
     });
-    console.log("Data Source has been initialized!");
   })
   .catch((err) => {
     console.log(err.message);
