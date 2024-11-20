@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { Vehicle } from "../entity/Vehicles.entity";
-import { dataSource } from "../ormconfig";
+import { dataSource } from "../config/ormconfig";
 import { MoreThanOrEqual } from "typeorm";
 
 export class VehiclesController {
-  static getVehicles = async (req: Request, res: Response): Promise<any> => {
+  static getVehicles = async (req: any, res: Response): Promise<any> => {
     try {
+      // const user = req["currentUser"];
       const { capacity, luggage_capacity } = req.params;
       const vehicles = await dataSource
         .getRepository(Vehicle)
