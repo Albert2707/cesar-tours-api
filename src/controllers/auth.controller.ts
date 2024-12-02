@@ -5,6 +5,7 @@ import * as bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 import { Encrypt } from "../helpers/encrypt";
 import { joiSchemaLogin, joiSchemaRegister } from "../helpers/validateBody";
+import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
 const { JWT_SECRET = "" } = process.env
 
 export class AuthController {
@@ -27,7 +28,7 @@ export class AuthController {
             }
 
             )
-            return res.status(200).json({ message: "Logged in successfully", payload });
+            return res.status(200).json({ message: "Logged in successfully", token });
         } catch (error) {
             if (error instanceof Error)
                 return res.status(500).json({ message: error.message })
@@ -37,7 +38,7 @@ export class AuthController {
 
     static async register(req: Request, res: Response): Promise<any> {
         try {
-            const { email, name, password, passwordConfirmation, role } = req.body
+            const { email, name, password, passwordConfirmation } = req.body
             const { error } = joiSchemaRegister.validate(req.body)
             if (error) return res.status(400).json({ message: error.details[0].message })
             const userSource = dataSource.getRepository(User)
@@ -45,7 +46,7 @@ export class AuthController {
             if (userIn) return res.status(400).json({ message: "User already exists" })
             if (password !== passwordConfirmation) return res.status(400).json({ message: "Passwords do not match" })
             const hashedPassword = await Encrypt.encryptpass(password)
-            const newUser = userSource.create({ email, name, password: hashedPassword, role });
+            const newUser = userSource.create({ email, name, password: hashedPassword });
             await userSource.save(newUser);
             // status  201 created
             return res.status(201).json({ message: "User created successfully" })
@@ -58,5 +59,17 @@ export class AuthController {
     static async logout(req: Request, res: Response): Promise<any> {
         res.clearCookie("token", { httpOnly: true, secure: true });
         return res.status(200).json({ message: "Logged out successfully" });
+    }
+
+    static async getProfile(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<any> {
+        try {
+            const user = req.currentUser;
+            if (!user) return res.status(401).json({ message: "No tienes permisos para acceder a esta información" });
+            const { password, ...userInfo } = user;
+            return res.status(200).json({ user:userInfo });
+        } catch (error) {
+            if (error instanceof Error)
+                return res.status(500).json({ message: error.message })
+        }
     }
 }
