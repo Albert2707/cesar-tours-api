@@ -8,7 +8,7 @@ export const dataSource = new DataSource({
     username: "root",
     password: "black3363",
     database: "cesar_tours",
-    synchronize: process.env.NODE_ENV === "dev" ? false : false,
+    synchronize: process.env.NODE_ENV === "dev" ? true : false,
     logging: process.env.NODE_ENV === "dev" ? false : false,
     entities: ["src/entity/**/*.ts"],
     // migrations: ["../../migrations/**/*.ts"],
