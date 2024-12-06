@@ -11,6 +11,11 @@ import { orderRouter } from "./routes/order.route";
 import helmet from "helmet";
 import morgan from "morgan"
 import { limiter } from "./middlewares/limiter";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import { SimpleConsoleLogger } from "typeorm";
+import { generateCustomOrderNum } from "./helpers/uuid";
+import multer from "multer";
 config();
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173"];
@@ -20,7 +25,16 @@ const options: cors.CorsOptions = {
   credentials: true,
 };
 
-
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/assets/images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, generateCustomOrderNum() + "-" + file.originalname);
+  },
+});
+app.use(multer({ storage: fileStorage }).single("image"));
+app.use('/public',express.static(path.join(__dirname, '../public')));
 app.use(limiter)
 app.use(morgan('dev'))
 app.use(helmet())
