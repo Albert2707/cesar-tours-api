@@ -18,7 +18,5 @@ export const joiSchemaCreateVehicle = joi.object({
     capacity: joi.number().required(),
     luggage_capacity: joi.number().required(),
     price_per_km: joi.number().required(),
-    img_url: joi.string().required(),
-    status: joi.boolean().required(),
 });
 
