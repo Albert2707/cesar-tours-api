@@ -1,5 +1,5 @@
-import {DataSource} from "typeorm";
-import {config} from "dotenv";
+import { DataSource } from "typeorm";
+import { config } from "dotenv";
 config();
 export const dataSource = new DataSource({
     type: "mysql",
@@ -8,9 +8,11 @@ export const dataSource = new DataSource({
     username: "root",
     password: "black3363",
     database: "cesar_tours",
+    // dropSchema: false,
+    logger: 'file',
     synchronize: process.env.NODE_ENV === "dev" ? true : false,
     logging: process.env.NODE_ENV === "dev" ? false : false,
     entities: ["src/entity/**/*.ts"],
-    // migrations: ["../../migrations/**/*.ts"],
+    migrations: ["../migrations/**/*.ts"],
     // subscribers: ["src/subscriber/**/*.ts"],
 })
