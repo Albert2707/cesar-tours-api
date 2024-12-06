@@ -23,7 +23,7 @@ export class Vehicle {
   @Column()
   img_url: string;
 
-  @Column()
+  @Column({default: true})
   status: boolean;
 
   @CreateDateColumn({ name: "created_at" })

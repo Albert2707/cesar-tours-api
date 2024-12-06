@@ -57,7 +57,7 @@ export class Order {
     @Column({ name: "vehicle_id" })
     vehicleId: string;
 
-    @Column()
+    @Column({default:0})
     status: number;
 
     @ManyToOne(() => Customer)
