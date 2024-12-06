@@ -1,4 +1,4 @@
-import express, { Express, json } from "express";
+import express, { Express, json, NextFunction, Request, Response } from "express";
 import { config } from "dotenv";
 import { emailRouter } from "./routes/email.route";
 import cors from "cors";
@@ -15,8 +15,10 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { SimpleConsoleLogger } from "typeorm";
 import { generateCustomOrderNum } from "./helpers/uuid";
-import multer from "multer";
+import multer, { MulterError } from "multer";
+import { ErrorHandler } from "./middlewares/errorHandler";
 config();
+const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173"];
 
@@ -33,7 +35,7 @@ const fileStorage = multer.diskStorage({
     cb(null, generateCustomOrderNum() + "-" + file.originalname);
   },
 });
-app.use(multer({ storage: fileStorage }).single("image"));
+app.use(multer({ storage: fileStorage, limits:{fileSize:maxSize}}).single("image"));
 app.use('/public',express.static(path.join(__dirname, '../public')));
 app.use(limiter)
 app.use(morgan('dev'))
@@ -46,6 +48,8 @@ app.use("/api/email", emailRouter);
 app.use("/api/vehicle", vehicleRouter);
 app.use("/api/user", userRouter);
 app.use("/api/order", orderRouter);
+app.use(ErrorHandler)
+
 dataSource
   .initialize()
   .then(async () => {
