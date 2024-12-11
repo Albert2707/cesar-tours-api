@@ -5,8 +5,12 @@ import { Vehicle } from "../entity/Vehicles.entity";
 import path from "path";
 import fs from "fs";
 import { joiSchemaCreateVehicle } from "../helpers/validateBody";
+import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
 export class VehiclesController {
-  static getVehicles = async (req: any, res: Response): Promise<any> => {
+  static getVehiclesPublic = async (
+    req: Request,
+    res: Response
+  ): Promise<any> => {
     try {
       // const user = req["currentUser"];
       const { capacity, luggage_capacity } = req.params;
@@ -25,6 +29,49 @@ export class VehiclesController {
     }
   };
 
+  static getAllVehiclesAdmin = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
+    try {
+      const { skip = 1, limit = 5, status } = req.query; // Página 1 por defecto
+      let whereClause: any = {};
+
+      if (status && status !== "all") {
+        whereClause.status = Number(status);
+      }
+      let skipValue =
+        (parseInt(skip as string, 10) - 1) * parseInt(limit as string, 10); // Ajustamos skip
+      let limitValue = parseInt(limit as string, 10) || 5;
+
+      const [vehicle, total] = await dataSource
+        .getRepository(Vehicle)
+        .findAndCount({
+          skip: skipValue,
+          take: limitValue,
+          where: whereClause,
+          order: {
+            createAt: "DESC",
+          },
+        });
+
+      const currentPage = Math.floor(skipValue / limitValue) + 1;
+      const totalPages = Math.ceil(total / limitValue);
+
+      return res.status(200).json({
+        vehicle,
+        total,
+        totalPages,
+        currentPage,
+        hasNextPage: currentPage < totalPages,
+      });
+    } catch (error) {
+      next(error);
+      if (error instanceof Error)
+        return res.status(500).json({ message: error.message });
+    }
+  };
   static async createVehicle(req: Request, res: Response): Promise<any> {
     try {
       const { brand, model, capacity, luggage_capacity, price_per_km } =
@@ -58,16 +105,15 @@ export class VehiclesController {
     next: NextFunction
   ): Promise<any> {
     const { id } = req.params;
+    console.log(id);
     try {
       const vehicle = await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder("vehicle")
         .where("vehicle.id = :id", { id })
         .getOne();
-      console.log(vehicle);
       if (!vehicle)
         return res.status(404).json({ message: "Vehicle not found" });
-      // return next(new Error("Error"))
       await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder()
