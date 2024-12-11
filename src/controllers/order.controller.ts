@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { dataSource } from "../config/ormconfig";
 import { Order } from "../entity/Order.entity";
 import { generateCustomOrderNum } from "../helpers/uuid";
@@ -42,6 +42,31 @@ export class OrderController {
       console.error(error);
       if (error instanceof Error)
         return res.status(500).json({ message: error.message });
+    }
+  };
+
+  static getOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
+    try {
+      const { id: orderNum } = req.params;
+      console.log(orderNum);
+    
+      const order = await dataSource
+        .getRepository(Order)
+        .createQueryBuilder("order")
+        .where("order.order_num = :orderNum", { orderNum })
+        .getOne();
+    
+      if (!order) {
+        throw new Error("Order not found");
+      }
+    
+      return res.status(200).json({ order });
+    } catch (error) {
+      next(error);
     }
   };
 
