@@ -72,6 +72,47 @@ export class VehiclesController {
         return res.status(500).json({ message: error.message });
     }
   };
+
+  static getOneVehicle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const vehicle = dataSource
+        .getRepository(Vehicle)
+        .createQueryBuilder("vehicle")
+        .where("vehicle.id = :id", { id })
+        .getOne();
+      if (!vehicle) throw new Error("Vehicle not found");
+      return res.status(200).json({ vehicle });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
+  static updateVehicle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const vehicle = dataSource
+        .getRepository(Vehicle)
+        .createQueryBuilder("vehicle")
+        .where("vehicle.id = :id", { id })
+        .getOne();
+      if (!vehicle) throw new Error("Vehicle not found");
+      return res.status(200).json({ vehicle });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+
   static async createVehicle(req: Request, res: Response): Promise<any> {
     try {
       const { brand, model, capacity, luggage_capacity, price_per_km } =
