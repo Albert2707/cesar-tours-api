@@ -57,6 +57,8 @@ export class OrderController {
       const order = await dataSource
         .getRepository(Order)
         .createQueryBuilder("order")
+        .innerJoinAndSelect("order.customer", "customer")
+        .innerJoinAndSelect("order.vehicle", "vehicle")
         .where("order.order_num = :orderNum", { orderNum })
         .getOne();
     
