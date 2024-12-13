@@ -5,5 +5,5 @@ import { authentification } from "../middlewares/authentification";
 const router = Router();
 router.get("/getOrders",authentification, OrderController.getOrders);
 router.get("/getOrder/:id",authentification, OrderController.getOrder);
-router.post("/createOrder", OrderController.postOrder)
+router.post("/createOrder", OrderController.createOrder)
 export { router as orderRouter }
