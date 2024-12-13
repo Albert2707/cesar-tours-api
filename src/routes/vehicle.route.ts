@@ -12,7 +12,7 @@ router.get(
   authentification,
   VehiclesController.getAllVehiclesAdmin
 );
-router.put("/updateVehicle",authentification,VehiclesController.updateVehicle)
+router.put("/updateVehicle/:id",authentification,VehiclesController.updateVehicle)
 router.post(
   "/createVehicle",
   authentification,
