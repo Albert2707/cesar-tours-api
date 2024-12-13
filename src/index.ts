@@ -1,5 +1,4 @@
 import express, { Express, json, NextFunction, Request, Response } from "express";
-import { config } from "dotenv";
 import { emailRouter } from "./routes/email.route";
 import cors from "cors";
 import { dataSource } from "./config/ormconfig";
@@ -12,16 +11,13 @@ import helmet from "helmet";
 import morgan from "morgan"
 import { limiter } from "./middlewares/limiter";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
-import { SimpleConsoleLogger } from "typeorm";
 import { generateCustomOrderNum } from "./helpers/uuid";
 import multer, { MulterError } from "multer";
 import { ErrorHandler } from "./middlewares/errorHandler";
-config();
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173"];
-
+process.loadEnvFile();
 const options: cors.CorsOptions = {
   origin: allowedOrigins,
   credentials: true,
@@ -50,6 +46,7 @@ app.use("/api/user", userRouter);
 app.use("/api/order", orderRouter);
 app.use(ErrorHandler)
 
+console.log(process.env.PORT)
 dataSource
   .initialize()
   .then(async () => {
