@@ -3,6 +3,8 @@ import { dataSource } from "../config/ormconfig";
 import { Order } from "../entity/Order.entity";
 import { generateCustomOrderNum } from "../helpers/uuid";
 import { Customer } from "../entity/Customer.entity";
+import { Vehicle } from "../entity/Vehicles.entity";
+import { VehicleState } from "../enums/vehicleEnums";
 export class OrderController {
   static getOrders = async (req: Request, res: Response): Promise<any> => {
     try {
@@ -53,7 +55,7 @@ export class OrderController {
     try {
       const { id: orderNum } = req.params;
       console.log(orderNum);
-    
+
       const order = await dataSource
         .getRepository(Order)
         .createQueryBuilder("order")
@@ -61,18 +63,22 @@ export class OrderController {
         .innerJoinAndSelect("order.vehicle", "vehicle")
         .where("order.order_num = :orderNum", { orderNum })
         .getOne();
-    
+
       if (!order) {
         throw new Error("Order not found");
       }
-    
+
       return res.status(200).json({ order });
     } catch (error) {
       next(error);
     }
   };
 
-  static postOrder = async (req: Request, res: Response): Promise<any> => {
+  static createOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> => {
     try {
       const order = dataSource.getRepository(Order);
       const customer = dataSource.getRepository(Customer);
@@ -97,17 +103,24 @@ export class OrderController {
       };
       const findOrder = await order.findOne({
         where: { order_num: orderToCreate.order_num },
+        relations: ["vehicle"],
       });
       if (findOrder)
         return res.status(400).json({ message: "Order already exists" });
       const newOrder = order.create(orderToCreate);
       const orderCreated = await order.save(newOrder);
+      await dataSource
+        .getRepository(Vehicle)
+        .createQueryBuilder("vehicles")
+        .update<Vehicle>(Vehicle, { status: VehicleState.UNAVAILABLE })
+        .where("vehicles.id = :id", { id: orderCreated.vehicleId })
+        .updateEntity(true)
+        .execute();
       return res
         .status(201)
         .json({ message: "Order created successfully", orderCreated });
     } catch (error) {
-      if (error instanceof Error)
-        return res.status(500).json({ message: error.message });
+      if (error instanceof Error) next(error);
     }
   };
 }
