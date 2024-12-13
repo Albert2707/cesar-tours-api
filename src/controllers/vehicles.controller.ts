@@ -92,7 +92,6 @@ export class VehiclesController {
     }
   };
 
-
   static updateVehicle = async (
     req: Request,
     res: Response,
@@ -100,18 +99,36 @@ export class VehiclesController {
   ): Promise<any> => {
     try {
       const { id } = req.params;
-      const vehicle = dataSource
+      const { brand, model, capacity, luggage_capacity, price_per_km } =
+        req.body;
+      const img = req.file;
+      const posix = img?.path.replace(/\\/g, "/");
+      const vehicle = await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder("vehicle")
         .where("vehicle.id = :id", { id })
         .getOne();
       if (!vehicle) throw new Error("Vehicle not found");
-      return res.status(200).json({ vehicle });
+      if (img) {
+        fs.unlinkSync(path.join(__dirname, "../../" + vehicle.img_url));
+      }
+      const updateData = {
+        brand,
+        model,
+        capacity,
+        luggage_capacity,
+        price_per_km,
+        img_url: posix ? posix : vehicle?.img_url,
+      };
+      await dataSource.getRepository(Vehicle).save({
+        ...vehicle,
+        ...updateData,
+      });
+      return res.status(200).json({ message: "Vehicle updated successfully" });
     } catch (error) {
       next(error);
     }
   };
-  
 
   static async createVehicle(req: Request, res: Response): Promise<any> {
     try {
