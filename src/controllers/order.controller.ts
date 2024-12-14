@@ -6,7 +6,7 @@ import { Customer } from "../entity/Customer.entity";
 import { Vehicle } from "../entity/Vehicles.entity";
 import { VehicleState } from "../enums/vehicleEnums";
 export class OrderController {
-  static getOrders = async (req: Request, res: Response): Promise<any> => {
+  static getOrders = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
       const { skip = 1, limit = 5, status } = req.query; // Página 1 por defecto
       let whereClause: any = {};
@@ -41,9 +41,7 @@ export class OrderController {
         hasNextPage: currentPage < totalPages,
       });
     } catch (error) {
-      console.error(error);
-      if (error instanceof Error)
-        return res.status(500).json({ message: error.message });
+      next(error)
     }
   };
 
@@ -54,7 +52,6 @@ export class OrderController {
   ): Promise<any> => {
     try {
       const { id: orderNum } = req.params;
-      console.log(orderNum);
 
       const order = await dataSource
         .getRepository(Order)
@@ -123,4 +120,27 @@ export class OrderController {
       if (error instanceof Error) next(error);
     }
   };
+
+  static updateOrderStatus = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const { id: orderNum } = req.params;
+      const { status } = req.body;
+      const order = await dataSource
+        .getRepository(Order)
+        .createQueryBuilder("order")
+        .where("order.order_num = :orderNum", { orderNum })
+        .getOne();
+        const data ={
+          status
+        }
+      if (!order) throw new Error("Order not found");
+      await dataSource.getRepository(Order).save({
+        ...order,
+        ...data
+      })
+      return res.status(200).json({ message: "Order updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
