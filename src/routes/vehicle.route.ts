@@ -4,7 +4,7 @@ import { authentification } from "../middlewares/authentification";
 
 const router = express.Router();
 router.get(
-  "/getVehicles/:capacity/:luggage_capacity",
+  "/getVehicles",
   VehiclesController.getVehiclesPublic
 );
 router.get(
