@@ -5,6 +5,7 @@ import { generateCustomOrderNum } from "../helpers/uuid";
 import { Customer } from "../entity/Customer.entity";
 import { Vehicle } from "../entity/Vehicles.entity";
 import { VehicleState } from "../enums/vehicleEnums";
+import { formatToDatabaseDate } from "../utils/functions";
 export class OrderController {
   static getOrders = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
@@ -93,8 +94,13 @@ export class OrderController {
       const { customer_id: customerId } = customerCreated;
 
       const body = req.body as Order;
+      const {departureDate, returnDate} = body;
+      const departure = formatToDatabaseDate(departureDate);
+      const returnDateObj =returnDate?formatToDatabaseDate(returnDate): undefined;
       const orderToCreate = {
         ...body,
+        departureDate: departure,
+        returnDate: returnDateObj,
         order_num: generateCustomOrderNum(),
         customerId,
       };
@@ -130,9 +136,9 @@ export class OrderController {
         .createQueryBuilder("order")
         .where("order.order_num = :orderNum", { orderNum })
         .getOne();
-        const data ={
-          status
-        }
+      const data = {
+        status
+      }
       if (!order) throw new Error("Order not found");
       await dataSource.getRepository(Order).save({
         ...order,
