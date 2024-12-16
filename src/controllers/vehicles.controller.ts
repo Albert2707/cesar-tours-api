@@ -1,33 +1,67 @@
 import { NextFunction, Request, Response } from "express";
 import { dataSource } from "../config/ormconfig";
-import { MoreThanOrEqual } from "typeorm";
+import { Brackets, MoreThanOrEqual } from "typeorm";
 import { Vehicle } from "../entity/Vehicles.entity";
 import path from "path";
 import fs from "fs";
 import { joiSchemaCreateVehicle } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
+import { Order } from "../entity/Order.entity";
+import { format, isValid, parseISO } from "date-fns";
+import { formatDate } from "../utils/functions";
 export class VehiclesController {
-  static getVehiclesPublic = async (
-    req: Request,
-    res: Response
-  ): Promise<any> => {
+  static getVehiclesPublic = async (req: Request, res: Response): Promise<any> => {
     try {
-      // const user = req["currentUser"];
-      const { capacity, luggage_capacity } = req.params;
+      const { capacity = 1, luggage_capacity = 0, departureDate, returnDate } = req.query;
+  
+      // Convertir las fechas a objetos Date y formatearlas
+      const departure = formatDate(departureDate as string);
+      const returnDateObj = returnDate ? formatDate(returnDate as string) : null;
+  
+      console.log("Formatted Departure:", departure);
+      console.log("Formatted Return Date:", returnDateObj);
+  
+      // Paso 1: Obtener vehículos que están reservados en las fechas proporcionadas
+      const reservedVehicles = await dataSource
+        .getRepository(Order)
+        .createQueryBuilder("order")
+        .innerJoin("order.vehicle", "vehicle")
+        .where("order.vehicle_id = vehicle.id")
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where("order.departureDate = :departureDate", { departureDate: departure })
+              .orWhere("order.returnDate = :returnDate", { returnDate: returnDateObj || departure });
+          })
+        )
+        .select("vehicle.id") // Solo necesitamos los IDs de los vehículos reservados
+        .getRawMany();
+  
+      console.log("Reserved Vehicles:", reservedVehicles);
+  
+      const reservedVehicleIds = reservedVehicles.map((order) => order.vehicle_id);
+  
+      // Paso 2: Obtener vehículos disponibles
       const vehicles = await dataSource.getRepository(Vehicle).find({
         where: {
-          status: true,
           capacity: MoreThanOrEqual(+capacity),
           luggage_capacity: MoreThanOrEqual(+luggage_capacity),
         },
       });
-
-      return res.status(200).json(vehicles);
+  
+      // Paso 3: Filtrar los vehículos reservados
+      const availableVehicles = vehicles.filter(
+        (vehicle) => !reservedVehicleIds.includes(vehicle.id)
+      );
+  
+      return res.status(200).json(availableVehicles);
     } catch (err) {
-      if (err instanceof Error)
+      if (err instanceof Error) {
+        console.error(err);
         return res.status(500).json({ message: err.message });
+      }
     }
   };
+  
 
   static getAllVehiclesAdmin = async (
     req: AuthenticatedRequest,
