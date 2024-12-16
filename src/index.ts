@@ -14,6 +14,7 @@ import path from "path";
 import { generateCustomOrderNum } from "./helpers/uuid";
 import multer, { MulterError } from "multer";
 import { ErrorHandler } from "./middlewares/errorHandler";
+import { countriesRouter } from "./routes/countries.route";
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173"];
@@ -31,8 +32,8 @@ const fileStorage = multer.diskStorage({
     cb(null, generateCustomOrderNum() + "-" + file.originalname);
   },
 });
-app.use(multer({ storage: fileStorage, limits:{fileSize:maxSize}}).single("image"));
-app.use('/public',express.static(path.join(__dirname, '../public')));
+app.use(multer({ storage: fileStorage, limits: { fileSize: maxSize } }).single("image"));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use(limiter)
 app.use(morgan('dev'))
 app.use(helmet())
@@ -44,6 +45,7 @@ app.use("/api/email", emailRouter);
 app.use("/api/vehicle", vehicleRouter);
 app.use("/api/user", userRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/countries", countriesRouter);
 app.use(ErrorHandler)
 
 console.log(process.env.PORT)
