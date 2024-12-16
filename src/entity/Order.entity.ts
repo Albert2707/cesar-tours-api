@@ -25,16 +25,16 @@ export class Order {
     @Column()
     luggage: number;
 
-    @Column({ name: "departure_date" })
-    departureDate: Date;
+    @Column({ name: "departure_date", type: 'date' })
+    departureDate: string;
 
     @Column({ name: "departure_hour" })
     departureHours: string
 
-    @Column({ name: "return_date", nullable: true })
-    returnDate: Date;
+    @Column({ name: "return_date", nullable: true, type: 'date' })
+    returnDate: string;
 
-    @Column({ name: "return_hour",nullable: true  })
+    @Column({ name: "return_hour", nullable: true })
     returnHours: string
 
     @ManyToOne(() => Country)
@@ -57,7 +57,7 @@ export class Order {
     @Column({ name: "vehicle_id" })
     vehicleId: string;
 
-    @Column({default:0})
+    @Column({ default: 0 })
     status: number;
 
     @ManyToOne(() => Customer)
@@ -73,7 +73,7 @@ export class Order {
     @Column()
     flight_number: string;
 
-    @Column({ name: "additional_notes",nullable: true  })
+    @Column({ name: "additional_notes", nullable: true })
     additionalNotes: string
 
     @Column({ name: "payment_method", type: "enum", enum: ["Cash", "Card"], default: "Cash" })
@@ -84,7 +84,7 @@ export class Order {
 
     @CreateDateColumn({ name: "created_at" })
     createAt: Date;
-  
+
     @UpdateDateColumn({ name: "updated_at" })
     updateAt: Date;
 }
