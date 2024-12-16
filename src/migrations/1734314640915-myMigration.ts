@@ -49,19 +49,49 @@ export class MyMigration1734314640915 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DELETE FROM cesar_tours.country 
-            WHERE country IN (
-              'Dominican Republic',
-              'United States',
-              'Canada',
-              'Mexico',
-              'Brazil',
-              'Argentina',
-              'Germany',
-              'France',
-              'Japan',
-              'Australia'
-            )
-          `);
+      DELETE FROM cesar_tours.country 
+      WHERE country IN (
+        'Dominican Republic',
+        'United States',
+        'Canada',
+        'Mexico',
+        'Brazil',
+        'Argentina',
+        'Germany',
+        'France',
+        'Japan',
+        'Australia',
+        'United Kingdom',
+        'Italy',
+        'Spain',
+        'India',
+        'China',
+        'Russia',
+        'South Africa',
+        'Nigeria',
+        'Egypt',
+        'South Korea',
+        'Sweden',
+        'Norway',
+        'Finland',
+        'Netherlands',
+        'Poland',
+        'Switzerland',
+        'Belgium',
+        'Austria',
+        'Singapore',
+        'Thailand',
+        'Philippines',
+        'Indonesia',
+        'Malaysia',
+        'Pakistan',
+        'Ukraine',
+        'Kenya',
+        'Chile',
+        'Peru',
+        'Colombia',
+        'Venezuela'
+      )
+    `);
   }
 }
