@@ -13,15 +13,8 @@ export class VehiclesController {
   static getVehiclesPublic = async (req: Request, res: Response): Promise<any> => {
     try {
       const { capacity = 1, luggage_capacity = 0, departureDate, returnDate } = req.query;
-  
-      // Convertir las fechas a objetos Date y formatearlas
       const departure = formatDate(departureDate as string);
       const returnDateObj = returnDate ? formatDate(returnDate as string) : null;
-  
-      console.log("Formatted Departure:", departure);
-      console.log("Formatted Return Date:", returnDateObj);
-  
-      // Paso 1: Obtener vehículos que están reservados en las fechas proporcionadas
       const reservedVehicles = await dataSource
         .getRepository(Order)
         .createQueryBuilder("order")
@@ -35,8 +28,6 @@ export class VehiclesController {
         )
         .select("vehicle.id") // Solo necesitamos los IDs de los vehículos reservados
         .getRawMany();
-  
-      console.log("Reserved Vehicles:", reservedVehicles);
   
       const reservedVehicleIds = reservedVehicles.map((order) => order.vehicle_id);
   
@@ -197,7 +188,6 @@ export class VehiclesController {
     next: NextFunction
   ): Promise<any> {
     const { id } = req.params;
-    console.log(id);
     try {
       const vehicle = await dataSource
         .getRepository(Vehicle)
