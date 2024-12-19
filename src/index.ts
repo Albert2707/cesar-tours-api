@@ -48,7 +48,6 @@ app.use("/api/order", orderRouter);
 app.use("/api/countries", countriesRouter);
 app.use(ErrorHandler)
 
-console.log(process.env.PORT)
 dataSource
   .initialize()
   .then(async () => {
