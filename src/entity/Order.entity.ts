@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import { Country } from "./Country.entity";
 import { Vehicle } from "./Vehicles.entity";
 import { Customer } from "./Customer.entity";
+import { Location } from "./Locations";
 
 type TripType = "one_way" | "round_trip";
 type PaymentMethod = "Cash" | "Card";
@@ -10,11 +11,19 @@ export class Order {
     @PrimaryGeneratedColumn("uuid")
     order_num: string;
 
-    @Column()
-    origin: string;
+    @ManyToOne(() => Location)
+    @JoinColumn({ name: "origin_id" })
+    origin: Location;
 
-    @Column()
-    destination: string;
+    @Column({ name: "origin_id" })
+    originId: string;
+
+    @ManyToOne(() => Location)
+    @JoinColumn({ name: "destination_id" })
+    destination: Location;
+
+    @Column({ name: "destination_id" })
+    destinationId: string;
 
     @Column({ type: "enum", enum: ["one_way", "round_trip"], default: "one_way" })
     trip_type: TripType
@@ -25,16 +34,16 @@ export class Order {
     @Column()
     luggage: number;
 
-    @Column({ name: "departure_date" })
-    departureDate: Date;
+    @Column({ name: "departure_date", type: 'date' })
+    departureDate: string;
 
     @Column({ name: "departure_hour" })
     departureHours: string
 
-    @Column({ name: "return_date", nullable: true })
-    returnDate: Date;
+    @Column({ name: "return_date", nullable: true, type: 'date' })
+    returnDate: string;
 
-    @Column({ name: "return_hour",nullable: true  })
+    @Column({ name: "return_hour", nullable: true })
     returnHours: string
 
     @ManyToOne(() => Country)
@@ -57,7 +66,7 @@ export class Order {
     @Column({ name: "vehicle_id" })
     vehicleId: string;
 
-    @Column()
+    @Column({ default: 0 })
     status: number;
 
     @ManyToOne(() => Customer)
@@ -73,7 +82,7 @@ export class Order {
     @Column()
     flight_number: string;
 
-    @Column({ name: "additional_notes",nullable: true  })
+    @Column({ name: "additional_notes", nullable: true })
     additionalNotes: string
 
     @Column({ name: "payment_method", type: "enum", enum: ["Cash", "Card"], default: "Cash" })
@@ -84,7 +93,7 @@ export class Order {
 
     @CreateDateColumn({ name: "created_at" })
     createAt: Date;
-  
+
     @UpdateDateColumn({ name: "updated_at" })
     updateAt: Date;
 }

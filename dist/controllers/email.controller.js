@@ -14,6 +14,21 @@ exports.EmailController = void 0;
 const resend_1 = require("resend");
 const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
+// import Email from "../email/Email";
+// await resend.batch.send([
+//   {
+//     from: 'Acme <onboarding@resend.dev>',
+//     to: ['foo@gmail.com'],
+//     subject: 'hello world',
+//     html: '<h1>it works!</h1>',
+//   },
+//   {
+//     from: 'Acme <onboarding@resend.dev>',
+//     to: ['bar@outlook.com'],
+//     subject: 'world hello',
+//     html: '<p>it works!</p>',
+//   },
+// ]);
 class EmailController {
 }
 exports.EmailController = EmailController;
@@ -25,7 +40,6 @@ EmailController.postSendEmail = (req, res, next) => __awaiter(void 0, void 0, vo
             return res.status(401).json({ message: "Debe proporcinonar una clave de API" });
         }
         const { email, name, message, html } = req.body;
-        console.log(req.body);
         if (!email || !name || !message || !html) {
             return res.status(400).json({ message: "Favor enviar todos los datos" });
         }

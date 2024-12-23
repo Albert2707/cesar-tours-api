@@ -8,6 +8,7 @@ interface EmailProps {
     name: string,
     message: string
     html: string
+    subject:string
 }
 // import Email from "../email/Email";
 // await resend.batch.send([
@@ -31,7 +32,7 @@ export class EmailController {
             if (!key) {
                 return res.status(401).json({ message: "Debe proporcinonar una clave de API" })
             }
-            const { email, name, message, html } = req.body;
+            const { email, name, message, html, subject } = req.body;
             if (!email || !name || !message || !html) {
                 return res.status(400).json({ message: "Favor enviar todos los datos" })
             }
@@ -39,8 +40,8 @@ export class EmailController {
             const { data, error } = await resend.emails.send({
                 from: "Acme <onboarding@resend.dev>",
                 // from: "Acme <albertjohan2707@albertdev.dev>",
-                to: [email],
-                subject: "hello" + name,
+                to: 'albertjohan2707@gmail.com',
+                subject,
                 html,
             });
 
@@ -48,10 +49,8 @@ export class EmailController {
                 return res.status(400).json({ error });
             }
             return res.status(200).json({ data, message: "Correo enviado con exito" });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ message: "Error al enviar correo", error: error.message });
-            }
+        } catch (error) {
+          next(error)
         }
     }
 }

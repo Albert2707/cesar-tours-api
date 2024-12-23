@@ -1,9 +1,9 @@
-import { Router } from "express"
+import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
-import { authorization } from "../middlewares/authorization";
+import { authentification } from "../middlewares/authentification";
 const userRouter = Router();
-userRouter.post("/login", AuthController.login)
-userRouter.post("/register",authorization, AuthController.register)
-userRouter.post("/logout", authorization,AuthController.logout)
-userRouter.get("/profile",authorization ,AuthController.getProfile)
-export { userRouter }
+userRouter.post("/login", AuthController.login);
+userRouter.post("/register", authentification, AuthController.register);
+userRouter.post("/logout", authentification, AuthController.logout);
+userRouter.get("/profile", authentification, AuthController.getProfile);
+export { userRouter };

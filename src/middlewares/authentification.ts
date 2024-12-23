@@ -12,14 +12,11 @@ interface payload {
     exp: number
 }
 
-
 const { JWT_SECRET = "" } = process.env
-export const authorization = async (req: AuthenticatedRequest, res: any, next: any) => {
+export const authentification = async (req: AuthenticatedRequest, res: any, next: any) => {
     try {
-
         const token = req.cookies.token
         if (!token) return res.status(401).json({ message: "Unauthorized" })
-        // ya el verify decodifica el token
         const payload = jwt.verify(token, JWT_SECRET) as payload
         if (!payload) return res.status(401).json({ message: "Unauthorized" })
         const userSource = dataSource.getRepository(User);
