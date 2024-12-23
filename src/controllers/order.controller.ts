@@ -6,6 +6,7 @@ import { Customer } from "../entity/Customer.entity";
 import { Vehicle } from "../entity/Vehicles.entity";
 import { VehicleState } from "../enums/vehicleEnums";
 import { formatToDatabaseDate } from "../utils/functions";
+import { Location } from "../entity/Locations";
 export class OrderController {
   static getOrders = async (
     req: Request,
@@ -28,7 +29,7 @@ export class OrderController {
       const [order, total] = await dataSource
         .getRepository(Order)
         .findAndCount({
-          relations: ["customer", "vehicle", "country"],
+          relations: ["customer", "vehicle", "country", "origin", "destination"],
           skip: skipValue,
           take: limitValue,
           where: whereClause,
@@ -59,12 +60,13 @@ export class OrderController {
   ): Promise<any> => {
     try {
       const { id: orderNum } = req.params;
-
       const order = await dataSource
         .getRepository(Order)
         .createQueryBuilder("order")
         .innerJoinAndSelect("order.customer", "customer")
         .innerJoinAndSelect("order.vehicle", "vehicle")
+        .innerJoinAndSelect("order.origin", "origin")
+        .innerJoinAndSelect("order.destination", "destination")
         .where("order.order_num = :orderNum", { orderNum })
         .getOne();
 
@@ -86,8 +88,8 @@ export class OrderController {
     try {
       const order = dataSource.getRepository(Order);
       const customer = dataSource.getRepository(Customer);
-      const { name, lastName, email, phone, optionalPhone, countryId } =
-        req.body;
+      const { name, lastName, email, phone, optionalPhone, countryId, formatted_origin_address, formatted_destination_address, origin_lat, destination_lat, origin_lng, destination_lng } = req.body;
+      req.body;
       const newCustomer = customer.create({
         name,
         lastName,
@@ -96,7 +98,22 @@ export class OrderController {
         optionalPhone,
         countryId,
       });
+      const location = dataSource.getRepository(Location)
       const customerCreated = await customer.save(newCustomer);
+      const newOriginLocation = location.create({
+        formatted_address: formatted_origin_address,
+        lat: origin_lat,
+        lng: origin_lng,
+      })
+      const newDestinationLocation = location.create({
+        formatted_address: formatted_destination_address,
+        lat: destination_lat,
+        lng: destination_lng,
+      })
+      const originLocationCreated = await location.save(newOriginLocation);
+      const destinationLocationCreated = await location.save(newDestinationLocation);
+      const { location_id: originId } = originLocationCreated;
+      const { location_id: destinationId } = destinationLocationCreated;
       const { customer_id: customerId } = customerCreated;
 
       const body = req.body as Order;
@@ -111,6 +128,8 @@ export class OrderController {
         returnDate: returnDateObj,
         order_num: generateCustomOrderNum(),
         customerId,
+        originId,
+        destinationId,
       };
       const findOrder = await order.findOne({
         where: { order_num: orderToCreate.order_num },
@@ -120,6 +139,13 @@ export class OrderController {
         return res.status(400).json({ message: "Order already exists" });
       const newOrder = order.create(orderToCreate);
       const orderCreated = await order.save(newOrder);
+      const getOrder = await dataSource
+        .getRepository(Order)
+        .createQueryBuilder("order")
+        .innerJoinAndSelect("order.origin", "origin")
+        .innerJoinAndSelect("order.destination", "destination")
+        .where("order.order_num = :orderNum", { orderNum: orderCreated.order_num })
+        .getOne();
       await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder("vehicles")
@@ -129,7 +155,7 @@ export class OrderController {
         .execute();
       return res
         .status(201)
-        .json({ message: "Order created successfully", orderCreated });
+        .json({ message: "Order created successfully", orderCreated: getOrder });
     } catch (error) {
       if (error instanceof Error) next(error);
     }
@@ -161,4 +187,20 @@ export class OrderController {
       next(error);
     }
   };
+
+  static deleteOrder = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const { orderNum } = req.params;
+      await dataSource.getRepository(Order)
+        .createQueryBuilder()
+        .delete()
+        .from(Order)
+        .where("order_num = :order_num", { order_num: orderNum })
+        .execute();
+      return res.status(200).json({ message: "Order deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }

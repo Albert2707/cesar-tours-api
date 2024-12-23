@@ -6,5 +6,6 @@ const router = Router();
 router.get("/getOrders",authentification, OrderController.getOrders);
 router.get("/getOrder/:id",authentification, OrderController.getOrder);
 router.put("/updateOrderStatus/:id",authentification, OrderController.updateOrderStatus);
+router.delete("/deleteOrder/:orderNum",authentification, OrderController.deleteOrder);
 router.post("/createOrder", OrderController.createOrder)
 export { router as orderRouter }
