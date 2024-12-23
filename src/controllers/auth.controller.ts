@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { Encrypt } from "../helpers/encrypt";
 import { joiSchemaLogin, joiSchemaRegister } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
+import { nextDay } from "date-fns";
 const { JWT_SECRET = "" } = process.env
 
 export class AuthController {
@@ -35,7 +36,7 @@ export class AuthController {
 
     }
 
-    static async register(req: Request, res: Response): Promise<any> {
+    static async register(req: Request, res: Response, next: NextFunction): Promise<any> {
         try {
             const { email, name, password, passwordConfirmation } = req.body
             const { error } = joiSchemaRegister.validate(req.body)
@@ -43,14 +44,13 @@ export class AuthController {
             const userSource = dataSource.getRepository(User)
             const userIn = await userSource.findOne({ where: { email } })
             if (userIn) return res.status(400).json({ message: "User already exists" })
-            if (password !== passwordConfirmation) return res.status(400).json({ message: "Passwords do not match" })
+            if (password !== passwordConfirmation) throw new Error("Passwords do not match")
             const hashedPassword = await Encrypt.encryptpass(password)
             const newUser = userSource.create({ email, name, password: hashedPassword });
             await userSource.save(newUser);
             return res.status(201).json({ message: "User created successfully" })
-
         } catch (error) {
-            if (error instanceof Error) return res.status(500).json({ message: error.message })
+            next(error)
         }
     }
 

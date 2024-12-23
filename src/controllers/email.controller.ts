@@ -49,10 +49,8 @@ export class EmailController {
                 return res.status(400).json({ error });
             }
             return res.status(200).json({ data, message: "Correo enviado con exito" });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                res.status(500).json({ message: "Error al enviar correo", error: error.message });
-            }
+        } catch (error) {
+          next(error)
         }
     }
 }

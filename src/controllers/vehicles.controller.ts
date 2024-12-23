@@ -10,7 +10,7 @@ import { Order } from "../entity/Order.entity";
 import { format, isValid, parseISO } from "date-fns";
 import { formatDate } from "../utils/functions";
 export class VehiclesController {
-  static getVehiclesPublic = async (req: Request, res: Response): Promise<any> => {
+  static getVehiclesPublic = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
       const { capacity = 1, luggage_capacity = 0, departureDate, returnDate } = req.query;
       const departure = formatDate(departureDate as string);
@@ -28,9 +28,9 @@ export class VehiclesController {
         )
         .select("vehicle.id") // Solo necesitamos los IDs de los vehículos reservados
         .getRawMany();
-  
+
       const reservedVehicleIds = reservedVehicles.map((order) => order.vehicle_id);
-  
+
       // Paso 2: Obtener vehículos disponibles
       const vehicles = await dataSource.getRepository(Vehicle).find({
         where: {
@@ -38,21 +38,18 @@ export class VehiclesController {
           luggage_capacity: MoreThanOrEqual(+luggage_capacity),
         },
       });
-  
+
       // Paso 3: Filtrar los vehículos reservados
       const availableVehicles = vehicles.filter(
         (vehicle) => !reservedVehicleIds.includes(vehicle.id)
       );
-  
+
       return res.status(200).json(availableVehicles);
     } catch (err) {
-      if (err instanceof Error) {
-        console.error(err);
-        return res.status(500).json({ message: err.message });
-      }
+next(err)
     }
   };
-  
+
 
   static getAllVehiclesAdmin = async (
     req: AuthenticatedRequest,
@@ -60,10 +57,10 @@ export class VehiclesController {
     next: NextFunction
   ): Promise<any> => {
     try {
-      const { skip = 1, limit = 5, status } = req.query; // Página 1 por defecto
+      const { skip = 1, limit = 5, status} = req.query; // Página 1 por defecto
+      console.log(status)
       let whereClause: any = {};
-
-      if (status && status !== "all") {
+      if (status !== "all") {
         whereClause.status = Number(status);
       }
       let skipValue =
@@ -93,8 +90,6 @@ export class VehiclesController {
       });
     } catch (error) {
       next(error);
-      if (error instanceof Error)
-        return res.status(500).json({ message: error.message });
     }
   };
 
