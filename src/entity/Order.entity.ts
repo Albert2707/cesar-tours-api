@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import { Country } from "./Country.entity";
 import { Vehicle } from "./Vehicles.entity";
 import { Customer } from "./Customer.entity";
+import { Location } from "./Locations";
 
 type TripType = "one_way" | "round_trip";
 type PaymentMethod = "Cash" | "Card";
@@ -10,11 +11,19 @@ export class Order {
     @PrimaryGeneratedColumn("uuid")
     order_num: string;
 
-    @Column()
-    origin: string;
+    @ManyToOne(() => Location)
+    @JoinColumn({ name: "origin_id" })
+    origin: Location;
 
-    @Column()
-    destination: string;
+    @Column({ name: "origin_id" })
+    originId: string;
+
+    @ManyToOne(() => Location)
+    @JoinColumn({ name: "destination_id" })
+    destination: Location;
+
+    @Column({ name: "destination_id" })
+    destinationId: string;
 
     @Column({ type: "enum", enum: ["one_way", "round_trip"], default: "one_way" })
     trip_type: TripType
