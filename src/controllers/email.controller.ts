@@ -8,23 +8,9 @@ interface EmailProps {
     name: string,
     message: string
     html: string
-    subject:string
+    subject: string
 }
-// import Email from "../email/Email";
-// await resend.batch.send([
-//   {
-//     from: 'Acme <onboarding@resend.dev>',
-//     to: ['foo@gmail.com'],
-//     subject: 'hello world',
-//     html: '<h1>it works!</h1>',
-//   },
-//   {
-//     from: 'Acme <onboarding@resend.dev>',
-//     to: ['bar@outlook.com'],
-//     subject: 'world hello',
-//     html: '<p>it works!</p>',
-//   },
-// ]);
+
 export class EmailController {
     static postSendEmail = async (req: Request<{}, {}, EmailProps>, res: Response, next: NextFunction): Promise<any> => {
         try {
@@ -38,8 +24,7 @@ export class EmailController {
             }
             const resend = new Resend(key);
             const { data, error } = await resend.emails.send({
-                from: "Acme <onboarding@resend.dev>",
-                // from: "Acme <albertjohan2707@albertdev.dev>",
+                from: "Cesar Tours <onboarding@resend.dev>",
                 to: 'albertjohan2707@gmail.com',
                 subject,
                 html,
@@ -50,7 +35,36 @@ export class EmailController {
             }
             return res.status(200).json({ data, message: "Correo enviado con exito" });
         } catch (error) {
-          next(error)
+            next(error)
+        }
+    }
+
+    static sendConfirmationEmail = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            const key = req.headers["resendapikey"] as string
+            const { html, subject, email } = req.body;
+            const resend = new Resend(key);
+            const { data, error } = await resend.batch.send([
+                {
+                    from: 'Cesar Tours <onboarding@resend.dev>',
+                    to: 'albertjohan2707@gmail.com',
+                    subject: subject[0],
+                    html: html[0],
+                },
+                {
+                    from: 'Cesar Tours <onboarding@resend.dev>',
+                    to: email,
+                    subject: subject[1],
+                    html: html[1],
+                },
+            ]);
+            if (error) {
+                return next(error)
+            }
+            return res.status(200).json({ data, message: "Correo enviado con exito" });
+
+        } catch (error) {
+            next(error)
         }
     }
 }
