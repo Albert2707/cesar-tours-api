@@ -14,6 +14,7 @@ export class VehiclesController {
       const { capacity = 1, luggage_capacity = 0, departureDate, returnDate } = req.query;
       const departure = formatDate(departureDate as string);
       const returnDateObj = returnDate ? formatDate(returnDate as string) : null;
+
       const reservedVehicles = await dataSource
         .getRepository(Order)
         .createQueryBuilder("order")
@@ -25,12 +26,11 @@ export class VehiclesController {
               .orWhere("order.returnDate = :returnDate", { returnDate: returnDateObj || departure });
           })
         )
-        .select("vehicle.id") // Solo necesitamos los IDs de los vehículos reservados
+        .select("vehicle.id")
         .getRawMany();
 
       const reservedVehicleIds = reservedVehicles.map((order) => order.vehicle_id);
 
-      // Paso 2: Obtener vehículos disponibles
       const vehicles = await dataSource.getRepository(Vehicle).find({
         where: {
           capacity: MoreThanOrEqual(+capacity),
@@ -38,17 +38,15 @@ export class VehiclesController {
         },
       });
 
-      // Paso 3: Filtrar los vehículos reservados
       const availableVehicles = vehicles.filter(
         (vehicle) => !reservedVehicleIds.includes(vehicle.id)
       );
 
       return res.status(200).json(availableVehicles);
     } catch (err) {
-next(err)
+      next(err);
     }
   };
-
 
   static getAllVehiclesAdmin = async (
     req: AuthenticatedRequest,
@@ -56,15 +54,15 @@ next(err)
     next: NextFunction
   ): Promise<any> => {
     try {
-      const { skip = 1, limit = 5, status} = req.query; // Página 1 por defecto
-      console.log(status)
+      const { skip = 1, limit = 5, status } = req.query;
+
       let whereClause: any = {};
       if (status !== "all") {
         whereClause.status = Number(status);
       }
-      let skipValue =
-        (parseInt(skip as string, 10) - 1) * parseInt(limit as string, 10); // Ajustamos skip
-      let limitValue = parseInt(limit as string, 10) || 5;
+
+      const skipValue = (parseInt(skip as string, 10) - 1) * parseInt(limit as string, 10);
+      const limitValue = parseInt(limit as string, 10) || 5;
 
       const [vehicle, total] = await dataSource
         .getRepository(Vehicle)
@@ -99,7 +97,7 @@ next(err)
   ): Promise<any> => {
     try {
       const { id } = req.params;
-      const vehicle = dataSource
+      const vehicle = await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder("vehicle")
         .where("vehicle.id = :id", { id })
@@ -118,31 +116,41 @@ next(err)
   ): Promise<any> => {
     try {
       const { id } = req.params;
-      const { brand, model, capacity, luggage_capacity, price_per_km } =
-        req.body;
+      const { brand, model, capacity, luggage_capacity, price_per_km } = req.body;
       const img = req.file;
-      const posix = img?.path.replace(/\\/g, "/");
+
       const vehicle = await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder("vehicle")
         .where("vehicle.id = :id", { id })
         .getOne();
+
       if (!vehicle) throw new Error("Vehicle not found");
+
       if (img) {
-        fs.unlinkSync(path.join(__dirname, "../../" + vehicle.img_url));
+        const oldImagePath = path.join(__dirname, "../../public/assets/images", path.basename(vehicle.img_url));
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
       }
+
+      const fileName = img?.filename;
+      const img_url = img ? `${req.protocol}://${req.get("host")}/public/assets/images/${fileName}` : vehicle.img_url;
+
       const updateData = {
         brand,
         model,
         capacity,
         luggage_capacity,
         price_per_km,
-        img_url: posix ? posix : vehicle?.img_url,
+        img_url,
       };
+
       await dataSource.getRepository(Vehicle).save({
         ...vehicle,
         ...updateData,
       });
+
       return res.status(200).json({ message: "Vehicle updated successfully" });
     } catch (error) {
       next(error);
@@ -151,25 +159,27 @@ next(err)
 
   static async createVehicle(req: Request, res: Response): Promise<any> {
     try {
-      const { brand, model, capacity, luggage_capacity, price_per_km } =
-        req.body;
+      const { brand, model, capacity, luggage_capacity, price_per_km } = req.body;
       const img = req.file;
       if (!img) return res.status(400).json({ message: "Missing image" });
-      const posix = img.path.replace(/\\/g, "/");
-      console.log(posix)
-      console.log(img.path)
+
+      const fileName = img.filename;
+      const img_url = `${req.protocol}://${req.get("host")}/public/assets/images/${fileName}`;
+
       const source = dataSource.getRepository(Vehicle);
       const { error } = joiSchemaCreateVehicle.validate(req.body);
       if (error)
         return res.status(400).json({ message: error.details[0].message });
+
       const newVehicle = source.create({
         brand,
         model,
         capacity,
         luggage_capacity,
         price_per_km,
-        img_url: posix,
+        img_url,
       });
+
       await source.save(newVehicle);
       return res.status(201).json({ message: "Vehicle created successfully" });
     } catch (error) {
@@ -190,8 +200,15 @@ next(err)
         .createQueryBuilder("vehicle")
         .where("vehicle.id = :id", { id })
         .getOne();
+
       if (!vehicle)
         return res.status(404).json({ message: "Vehicle not found" });
+
+      const imgPath = path.join(__dirname, "../../public/assets/images", path.basename(vehicle.img_url));
+      if (fs.existsSync(imgPath)) {
+        await fs.promises.unlink(imgPath);
+      }
+
       await dataSource
         .getRepository(Vehicle)
         .createQueryBuilder()
@@ -199,8 +216,8 @@ next(err)
         .from(Vehicle)
         .where("id = :id", { id })
         .execute();
-      fs.promises.unlink(path.join(__dirname, "../../" + vehicle.img_url));
-      return res.status(200).json({ msg: "good" });
+
+      return res.status(200).json({ msg: "Vehicle deleted successfully" });
     } catch (error) {
       next(error);
     }
