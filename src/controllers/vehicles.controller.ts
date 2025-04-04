@@ -7,7 +7,6 @@ import fs from "fs";
 import { joiSchemaCreateVehicle } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
 import { Order } from "../entity/Order.entity";
-import { format, isValid, parseISO } from "date-fns";
 import { formatDate } from "../utils/functions";
 export class VehiclesController {
   static getVehiclesPublic = async (req: Request, res: Response, next: NextFunction): Promise<any> => {

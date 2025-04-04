@@ -29,6 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importStar(require("express"));
 const email_route_1 = require("./routes/email.route");
 const cors_1 = __importDefault(require("cors"));
+const fs_1 = __importDefault(require("fs"));
 const ormconfig_1 = require("./config/ormconfig");
 require("reflect-metadata");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -61,9 +62,15 @@ const options = {
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", 'resendapikey'],
 };
+const uploadPath = path_1.default.join(__dirname, "../public/assets/images");
+if (!fs_1.default.existsSync(uploadPath)) {
+    fs_1.default.mkdirSync(uploadPath, { recursive: true });
+    console.log("📁 Carpeta creada:", uploadPath);
+}
+// Configuración de multer
 const fileStorage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "./public/assets/images");
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
         cb(null, (0, uuid_1.generateCustomOrderNum)() + "-" + file.originalname);

@@ -8,7 +8,7 @@ export const dataSource = new DataSource({
     logger: 'file',
     synchronize: NODE_ENV === "dev" ? true : false,
     logging: NODE_ENV === "dev" ? false : false,
-    entities: ["src/entity/**/*.js"],
-    migrations: ["src/migrations/*.js"],
+    entities: ["dist/entity/**/*.js"],
+    migrations: ["dist/migrations/*.js"],
     migrationsTableName: "migrations",
 })

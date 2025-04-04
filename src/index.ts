@@ -1,6 +1,7 @@
 import express, { Express, json } from "express";
 import { emailRouter } from "./routes/email.route";
 import cors from "cors";
+import fs from "fs";
 import { dataSource } from "./config/ormconfig";
 import "reflect-metadata";
 import cookieParser from "cookie-parser";
@@ -33,14 +34,22 @@ const options: cors.CorsOptions = {
   allowedHeaders: ["Content-Type", "Authorization", 'resendapikey'],
 };
 
+const uploadPath = path.join(__dirname, "../public/assets/images");
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+  console.log("📁 Carpeta creada:", uploadPath);
+}
+
+// Configuración de multer
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./public/assets/images");
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     cb(null, generateCustomOrderNum() + "-" + file.originalname);
   },
 });
+
 app.use(multer({ storage: fileStorage, limits: { fileSize: maxSize } }).single("image"));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use(limiter)
