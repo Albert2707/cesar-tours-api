@@ -59,7 +59,7 @@ const options = {
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", 'resendapikey'],
 };
 const fileStorage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
@@ -76,6 +76,7 @@ app.use((0, morgan_1.default)('dev'));
 app.use((0, helmet_1.default)());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)(options));
+app.options("*", (0, cors_1.default)(options));
 app.use((0, express_1.json)());
 app.use("/api/email", email_route_1.emailRouter);
 app.use("/api/vehicle", vehicle_route_1.vehicleRouter);
