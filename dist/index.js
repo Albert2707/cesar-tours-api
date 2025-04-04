@@ -46,7 +46,7 @@ const countries_route_1 = require("./routes/countries.route");
 const dotenv_1 = require("dotenv");
 const maxSize = 5 * 1024 * 1024;
 const app = (0, express_1.default)();
-const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev/","https://cesar-tours-web.onrender.com/"];
+const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev","https://cesar-tours-web.onrender.com"];
 (0, dotenv_1.config)();
 const options = {
     origin: allowedOrigins,
