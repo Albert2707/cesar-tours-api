@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { dataSource } from "../config/ormconfig";
 import { User } from "../entity/User.entity";
-import * as bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
+import * as bcrypt from "bcryptjs"
 import { Encrypt } from "../helpers/encrypt";
 import { joiSchemaLogin, joiSchemaRegister } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
-import { nextDay } from "date-fns";
-const { JWT_SECRET = "" } = process.env
 
 export class AuthController {
     static async login(req: Request, res: Response, next: NextFunction): Promise<any> {
