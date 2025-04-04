@@ -1,19 +1,14 @@
 import { DataSource } from "typeorm";
 import { config } from "dotenv";
 config();
+const {MYSQL_PUBLIC_URL,NODE_ENV} = process.env;
 export const dataSource = new DataSource({
     type: "mysql",
-    host: "127.0.0.1",
-    port: 3307,
-    username: "root",
-    password: "black3363",
-    database: "cesar_tours",
-    // dropSchema: true,
+    url:MYSQL_PUBLIC_URL,
     logger: 'file',
-    synchronize: process.env.NODE_ENV === "dev" ? true : false,
-    logging: process.env.NODE_ENV === "dev" ? false : false,
+    synchronize: NODE_ENV === "dev" ? true : false,
+    logging: NODE_ENV === "dev" ? false : false,
     entities: ["src/entity/**/*.ts"],
     migrations: ["src/migrations/*.ts"],
     migrationsTableName: "migrations",
-    // subscribers: ["src/subscriber/**/*.ts"],
 })
