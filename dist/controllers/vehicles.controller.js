@@ -20,9 +20,8 @@ class VehiclesController {
             const img = req.file;
             if (!img)
                 return res.status(400).json({ message: "Missing image" });
-            const posix = img.path.replace(/\\/g, "/");
-            console.log(posix);
-            console.log(img.path);
+            const fileName = img.filename;
+            const img_url = `${req.protocol}://${req.get("host")}/public/assets/images/${fileName}`;
             const source = ormconfig_1.dataSource.getRepository(Vehicles_entity_1.Vehicle);
             const { error } = validateBody_1.joiSchemaCreateVehicle.validate(req.body);
             if (error)
@@ -33,7 +32,7 @@ class VehiclesController {
                 capacity,
                 luggage_capacity,
                 price_per_km,
-                img_url: posix,
+                img_url,
             });
             await source.save(newVehicle);
             return res.status(201).json({ message: "Vehicle created successfully" });
@@ -53,6 +52,10 @@ class VehiclesController {
                 .getOne();
             if (!vehicle)
                 return res.status(404).json({ message: "Vehicle not found" });
+            const imgPath = path_1.default.join(__dirname, "../../public/assets/images", path_1.default.basename(vehicle.img_url));
+            if (fs_1.default.existsSync(imgPath)) {
+                await fs_1.default.promises.unlink(imgPath);
+            }
             await ormconfig_1.dataSource
                 .getRepository(Vehicles_entity_1.Vehicle)
                 .createQueryBuilder()
@@ -60,8 +63,7 @@ class VehiclesController {
                 .from(Vehicles_entity_1.Vehicle)
                 .where("id = :id", { id })
                 .execute();
-            fs_1.default.promises.unlink(path_1.default.join(__dirname, "../../" + vehicle.img_url));
-            return res.status(200).json({ msg: "good" });
+            return res.status(200).json({ msg: "Vehicle deleted successfully" });
         }
         catch (error) {
             next(error);
@@ -84,17 +86,15 @@ VehiclesController.getVehiclesPublic = async (req, res, next) => {
             qb.where("order.departureDate = :departureDate", { departureDate: departure })
                 .orWhere("order.returnDate = :returnDate", { returnDate: returnDateObj || departure });
         }))
-            .select("vehicle.id") // Solo necesitamos los IDs de los vehículos reservados
+            .select("vehicle.id")
             .getRawMany();
         const reservedVehicleIds = reservedVehicles.map((order) => order.vehicle_id);
-        // Paso 2: Obtener vehículos disponibles
         const vehicles = await ormconfig_1.dataSource.getRepository(Vehicles_entity_1.Vehicle).find({
             where: {
                 capacity: (0, typeorm_1.MoreThanOrEqual)(+capacity),
                 luggage_capacity: (0, typeorm_1.MoreThanOrEqual)(+luggage_capacity),
             },
         });
-        // Paso 3: Filtrar los vehículos reservados
         const availableVehicles = vehicles.filter((vehicle) => !reservedVehicleIds.includes(vehicle.id));
         return res.status(200).json(availableVehicles);
     }
@@ -104,14 +104,13 @@ VehiclesController.getVehiclesPublic = async (req, res, next) => {
 };
 VehiclesController.getAllVehiclesAdmin = async (req, res, next) => {
     try {
-        const { skip = 1, limit = 5, status } = req.query; // Página 1 por defecto
-        console.log(status);
+        const { skip = 1, limit = 5, status } = req.query;
         let whereClause = {};
         if (status !== "all") {
             whereClause.status = Number(status);
         }
-        let skipValue = (parseInt(skip, 10) - 1) * parseInt(limit, 10); // Ajustamos skip
-        let limitValue = parseInt(limit, 10) || 5;
+        const skipValue = (parseInt(skip, 10) - 1) * parseInt(limit, 10);
+        const limitValue = parseInt(limit, 10) || 5;
         const [vehicle, total] = await ormconfig_1.dataSource
             .getRepository(Vehicles_entity_1.Vehicle)
             .findAndCount({
@@ -139,7 +138,7 @@ VehiclesController.getAllVehiclesAdmin = async (req, res, next) => {
 VehiclesController.getOneVehicle = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const vehicle = ormconfig_1.dataSource
+        const vehicle = await ormconfig_1.dataSource
             .getRepository(Vehicles_entity_1.Vehicle)
             .createQueryBuilder("vehicle")
             .where("vehicle.id = :id", { id })
@@ -157,7 +156,6 @@ VehiclesController.updateVehicle = async (req, res, next) => {
         const { id } = req.params;
         const { brand, model, capacity, luggage_capacity, price_per_km } = req.body;
         const img = req.file;
-        const posix = img?.path.replace(/\\/g, "/");
         const vehicle = await ormconfig_1.dataSource
             .getRepository(Vehicles_entity_1.Vehicle)
             .createQueryBuilder("vehicle")
@@ -166,15 +164,20 @@ VehiclesController.updateVehicle = async (req, res, next) => {
         if (!vehicle)
             throw new Error("Vehicle not found");
         if (img) {
-            fs_1.default.unlinkSync(path_1.default.join(__dirname, "../../" + vehicle.img_url));
+            const oldImagePath = path_1.default.join(__dirname, "../../public/assets/images", path_1.default.basename(vehicle.img_url));
+            if (fs_1.default.existsSync(oldImagePath)) {
+                fs_1.default.unlinkSync(oldImagePath);
+            }
         }
+        const fileName = img?.filename;
+        const img_url = img ? `${req.protocol}://${req.get("host")}/public/assets/images/${fileName}` : vehicle.img_url;
         const updateData = {
             brand,
             model,
             capacity,
             luggage_capacity,
             price_per_km,
-            img_url: posix ? posix : vehicle?.img_url,
+            img_url,
         };
         await ormconfig_1.dataSource.getRepository(Vehicles_entity_1.Vehicle).save({
             ...vehicle,
