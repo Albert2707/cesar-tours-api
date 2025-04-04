@@ -156,6 +156,8 @@ next(err)
       const img = req.file;
       if (!img) return res.status(400).json({ message: "Missing image" });
       const posix = img.path.replace(/\\/g, "/");
+      console.log(posix)
+      console.log(img.path)
       const source = dataSource.getRepository(Vehicle);
       const { error } = joiSchemaCreateVehicle.validate(req.body);
       if (error)

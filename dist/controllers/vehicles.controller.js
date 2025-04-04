@@ -21,6 +21,8 @@ class VehiclesController {
             if (!img)
                 return res.status(400).json({ message: "Missing image" });
             const posix = img.path.replace(/\\/g, "/");
+            console.log(posix);
+            console.log(img.path);
             const source = ormconfig_1.dataSource.getRepository(Vehicles_entity_1.Vehicle);
             const { error } = validateBody_1.joiSchemaCreateVehicle.validate(req.body);
             if (error)
