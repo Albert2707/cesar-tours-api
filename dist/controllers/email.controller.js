@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailController = void 0;
@@ -18,7 +9,7 @@ class EmailController {
 }
 exports.EmailController = EmailController;
 _a = EmailController;
-EmailController.postSendEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+EmailController.postSendEmail = async (req, res, next) => {
     try {
         const key = req.headers["resendapikey"];
         if (!key) {
@@ -29,7 +20,7 @@ EmailController.postSendEmail = (req, res, next) => __awaiter(void 0, void 0, vo
             return res.status(400).json({ message: "Favor enviar todos los datos" });
         }
         const resend = new resend_1.Resend(key);
-        const { data, error } = yield resend.emails.send({
+        const { data, error } = await resend.emails.send({
             from: "Cesar Tours <onboarding@resend.dev>",
             to: 'albertjohan2707@gmail.com',
             subject,
@@ -43,13 +34,13 @@ EmailController.postSendEmail = (req, res, next) => __awaiter(void 0, void 0, vo
     catch (error) {
         next(error);
     }
-});
-EmailController.sendConfirmationEmail = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+};
+EmailController.sendConfirmationEmail = async (req, res, next) => {
     try {
         const key = req.headers["resendapikey"];
         const { html, subject, email } = req.body;
         const resend = new resend_1.Resend(key);
-        const { data, error } = yield resend.batch.send([
+        const { data, error } = await resend.batch.send([
             {
                 from: 'Cesar Tours <onboarding@resend.dev>',
                 to: 'albertjohan2707@gmail.com',
@@ -71,4 +62,4 @@ EmailController.sendConfirmationEmail = (req, res, next) => __awaiter(void 0, vo
     catch (error) {
         next(error);
     }
-});
+};

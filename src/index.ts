@@ -1,4 +1,4 @@
-import express, { Express, json, NextFunction, Request, Response } from "express";
+import express, { Express, json } from "express";
 import { emailRouter } from "./routes/email.route";
 import cors from "cors";
 import { dataSource } from "./config/ormconfig";
@@ -12,13 +12,14 @@ import morgan from "morgan"
 import { limiter } from "./middlewares/limiter";
 import path from "path";
 import { generateCustomOrderNum } from "./helpers/uuid";
-import multer, { MulterError } from "multer";
+import multer from "multer";
 import { ErrorHandler } from "./middlewares/errorHandler";
 import { countriesRouter } from "./routes/countries.route";
+import { config } from "dotenv";
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173"];
-process.loadEnvFile();
+config();
 const options: cors.CorsOptions = {
   origin: allowedOrigins,
   credentials: true,

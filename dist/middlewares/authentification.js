@@ -22,15 +22,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authentification = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
@@ -39,7 +30,7 @@ const ormconfig_1 = require("../config/ormconfig");
 const User_entity_1 = require("../entity/User.entity");
 (0, dotenv_1.config)();
 const { JWT_SECRET = "" } = process.env;
-const authentification = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const authentification = async (req, res, next) => {
     try {
         const token = req.cookies.token;
         if (!token)
@@ -48,7 +39,7 @@ const authentification = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         if (!payload)
             return res.status(401).json({ message: "Unauthorized" });
         const userSource = ormconfig_1.dataSource.getRepository(User_entity_1.User);
-        const user = yield userSource.findOne({ where: { id: payload.id } });
+        const user = await userSource.findOne({ where: { id: payload.id } });
         if (!user)
             return res.status(401).json({ message: "Unauthorized" });
         req.currentUser = user;
@@ -58,5 +49,5 @@ const authentification = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         if (error instanceof Error)
             return res.status(500).json({ message: error.message });
     }
-});
+};
 exports.authentification = authentification;

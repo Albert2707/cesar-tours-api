@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderController = void 0;
@@ -23,7 +14,7 @@ class OrderController {
 }
 exports.OrderController = OrderController;
 _a = OrderController;
-OrderController.getOrders = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+OrderController.getOrders = async (req, res, next) => {
     try {
         const { skip = 1, limit = 5, status, reservation_num } = req.query;
         let whereClause = {};
@@ -35,7 +26,7 @@ OrderController.getOrders = (req, res, next) => __awaiter(void 0, void 0, void 0
         }
         let skipValue = (parseInt(skip, 10) - 1) * parseInt(limit, 10); // Ajustamos skip
         let limitValue = parseInt(limit, 10) || 5;
-        const [order, total] = yield ormconfig_1.dataSource
+        const [order, total] = await ormconfig_1.dataSource
             .getRepository(Order_entity_1.Order)
             .findAndCount({
             relations: ["customer", "vehicle", "country", "origin", "destination"],
@@ -59,11 +50,11 @@ OrderController.getOrders = (req, res, next) => __awaiter(void 0, void 0, void 0
     catch (error) {
         next(error);
     }
-});
-OrderController.getOrder = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+};
+OrderController.getOrder = async (req, res, next) => {
     try {
         const { id: orderNum } = req.params;
-        const order = yield ormconfig_1.dataSource
+        const order = await ormconfig_1.dataSource
             .getRepository(Order_entity_1.Order)
             .createQueryBuilder("order")
             .innerJoinAndSelect("order.customer", "customer")
@@ -80,8 +71,8 @@ OrderController.getOrder = (req, res, next) => __awaiter(void 0, void 0, void 0,
     catch (error) {
         next(error);
     }
-});
-OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+};
+OrderController.createOrder = async (req, res, next) => {
     try {
         const order = ormconfig_1.dataSource.getRepository(Order_entity_1.Order);
         const customer = ormconfig_1.dataSource.getRepository(Customer_entity_1.Customer);
@@ -96,7 +87,7 @@ OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void
             countryId,
         });
         const location = ormconfig_1.dataSource.getRepository(Locations_1.Location);
-        const customerCreated = yield customer.save(newCustomer);
+        const customerCreated = await customer.save(newCustomer);
         const newOriginLocation = location.create({
             formatted_address: formatted_origin_address,
             lat: origin_lat,
@@ -107,8 +98,8 @@ OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void
             lat: destination_lat,
             lng: destination_lng,
         });
-        const originLocationCreated = yield location.save(newOriginLocation);
-        const destinationLocationCreated = yield location.save(newDestinationLocation);
+        const originLocationCreated = await location.save(newOriginLocation);
+        const destinationLocationCreated = await location.save(newDestinationLocation);
         const { location_id: originId } = originLocationCreated;
         const { location_id: destinationId } = destinationLocationCreated;
         const { customer_id: customerId } = customerCreated;
@@ -118,18 +109,24 @@ OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void
         const returnDateObj = returnDate
             ? (0, functions_1.formatToDatabaseDate)(returnDate)
             : undefined;
-        const orderToCreate = Object.assign(Object.assign({}, body), { departureDate: departure, returnDate: returnDateObj, order_num: (0, uuid_1.generateCustomOrderNum)(), customerId,
+        const orderToCreate = {
+            ...body,
+            departureDate: departure,
+            returnDate: returnDateObj,
+            order_num: (0, uuid_1.generateCustomOrderNum)(),
+            customerId,
             originId,
-            destinationId });
-        const findOrder = yield order.findOne({
+            destinationId,
+        };
+        const findOrder = await order.findOne({
             where: { order_num: orderToCreate.order_num },
             relations: ["vehicle"],
         });
         if (findOrder)
             return res.status(400).json({ message: "Order already exists" });
         const newOrder = order.create(orderToCreate);
-        const orderCreated = yield order.save(newOrder);
-        const getOrder = yield ormconfig_1.dataSource
+        const orderCreated = await order.save(newOrder);
+        const getOrder = await ormconfig_1.dataSource
             .getRepository(Order_entity_1.Order)
             .createQueryBuilder("order")
             .innerJoinAndSelect("order.customer", "customer")
@@ -138,7 +135,7 @@ OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void
             .innerJoinAndSelect("order.destination", "destination")
             .where("order.order_num = :orderNum", { orderNum: orderCreated.order_num })
             .getOne();
-        yield ormconfig_1.dataSource
+        await ormconfig_1.dataSource
             .getRepository(Vehicles_entity_1.Vehicle)
             .createQueryBuilder("vehicles")
             .update(Vehicles_entity_1.Vehicle, { status: vehicleEnums_1.VehicleState.UNAVAILABLE })
@@ -153,12 +150,12 @@ OrderController.createOrder = (req, res, next) => __awaiter(void 0, void 0, void
         if (error instanceof Error)
             next(error);
     }
-});
-OrderController.updateOrderStatus = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+};
+OrderController.updateOrderStatus = async (req, res, next) => {
     try {
         const { id: orderNum } = req.params;
         const { status } = req.body;
-        const order = yield ormconfig_1.dataSource
+        const order = await ormconfig_1.dataSource
             .getRepository(Order_entity_1.Order)
             .createQueryBuilder("order")
             .where("order.order_num = :orderNum", { orderNum })
@@ -168,17 +165,20 @@ OrderController.updateOrderStatus = (req, res, next) => __awaiter(void 0, void 0
         };
         if (!order)
             throw new Error("Order not found");
-        yield ormconfig_1.dataSource.getRepository(Order_entity_1.Order).save(Object.assign(Object.assign({}, order), data));
+        await ormconfig_1.dataSource.getRepository(Order_entity_1.Order).save({
+            ...order,
+            ...data,
+        });
         return res.status(200).json({ message: "Order updated successfully" });
     }
     catch (error) {
         next(error);
     }
-});
-OrderController.deleteOrder = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+};
+OrderController.deleteOrder = async (req, res, next) => {
     try {
         const { orderNum } = req.params;
-        yield ormconfig_1.dataSource.getRepository(Order_entity_1.Order)
+        await ormconfig_1.dataSource.getRepository(Order_entity_1.Order)
             .createQueryBuilder()
             .delete()
             .from(Order_entity_1.Order)
@@ -189,4 +189,4 @@ OrderController.deleteOrder = (req, res, next) => __awaiter(void 0, void 0, void
     catch (error) {
         next(error);
     }
-});
+};
