@@ -11,7 +11,7 @@ exports.dataSource = new typeorm_1.DataSource({
     logger: 'file',
     synchronize: NODE_ENV === "dev" ? true : false,
     logging: NODE_ENV === "dev" ? false : false,
-    entities: ["dist/entity/**/*.js"],
-    migrations: ["dist/migrations/*.js"],
+    entities: ["src/entity/**/*.js"],
+    migrations: ["src/migrations/*.js"],
     migrationsTableName: "migrations",
 });

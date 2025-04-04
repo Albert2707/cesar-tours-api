@@ -7,6 +7,6 @@ const authentification_1 = require("../middlewares/authentification");
 const userRouter = (0, express_1.Router)();
 exports.userRouter = userRouter;
 userRouter.post("/login", auth_controller_1.AuthController.login);
-userRouter.post("/register", auth_controller_1.AuthController.register);
+userRouter.post("/register", authentification_1.authentification, auth_controller_1.AuthController.register);
 userRouter.post("/logout", authentification_1.authentification, auth_controller_1.AuthController.logout);
 userRouter.get("/profile", authentification_1.authentification, auth_controller_1.AuthController.getProfile);

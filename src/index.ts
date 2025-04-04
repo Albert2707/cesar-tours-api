@@ -18,11 +18,19 @@ import { countriesRouter } from "./routes/countries.route";
 import { config } from "dotenv";
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev","https://cesar-tours-web.onrender.com"];
 config();
 const options: cors.CorsOptions = {
-  origin: allowedOrigins,
+  origin: (origin: string | undefined, callback: Function) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 const fileStorage = multer.diskStorage({
