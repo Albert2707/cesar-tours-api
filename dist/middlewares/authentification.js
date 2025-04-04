@@ -34,10 +34,10 @@ const authentification = async (req, res, next) => {
     try {
         const token = req.cookies.token;
         if (!token)
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ message: "Unauthorized token not provided" });
         const payload = jwt.verify(token, JWT_SECRET);
         if (!payload)
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ message: "Unauthorized invalid token" });
         const userSource = ormconfig_1.dataSource.getRepository(User_entity_1.User);
         const user = await userSource.findOne({ where: { id: payload.id } });
         if (!user)

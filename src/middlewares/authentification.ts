@@ -16,9 +16,9 @@ const { JWT_SECRET = "" } = process.env
 export const authentification = async (req: AuthenticatedRequest, res: any, next: any) => {
     try {
         const token = req.cookies.token
-        if (!token) return res.status(401).json({ message: "Unauthorized" })
+        if (!token) return res.status(401).json({ message: "Unauthorized token not provided" })
         const payload = jwt.verify(token, JWT_SECRET) as payload
-        if (!payload) return res.status(401).json({ message: "Unauthorized" })
+        if (!payload) return res.status(401).json({ message: "Unauthorized invalid token" })
         const userSource = dataSource.getRepository(User);
         const user = await userSource.findOne({ where: { id: payload.id } })
         if (!user) return res.status(401).json({ message: "Unauthorized" })
