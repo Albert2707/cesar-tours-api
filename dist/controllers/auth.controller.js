@@ -26,10 +26,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const ormconfig_1 = require("../config/ormconfig");
 const User_entity_1 = require("../entity/User.entity");
-const bcrypt = __importStar(require("bcrypt"));
+const bcrypt = __importStar(require("bcryptjs"));
 const encrypt_1 = require("../helpers/encrypt");
 const validateBody_1 = require("../helpers/validateBody");
-const { JWT_SECRET = "" } = process.env;
 class AuthController {
     static async login(req, res, next) {
         try {

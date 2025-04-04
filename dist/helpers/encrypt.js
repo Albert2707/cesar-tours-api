@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Encrypt = void 0;
 const dotenv = __importStar(require("dotenv"));
 const jwt = __importStar(require("jsonwebtoken"));
-const bcrypt = __importStar(require("bcrypt"));
+const bcrypt = __importStar(require("bcryptjs"));
 dotenv.config();
 const { JWT_SECRET = "" } = process.env;
 class Encrypt {
