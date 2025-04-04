@@ -30,3 +30,4 @@ const validatekey_1 = require("../middlewares/validatekey");
 const router = express.Router();
 exports.emailRouter = router;
 router.post("/send", validatekey_1.validateKey, email_controller_1.EmailController.postSendEmail);
+router.post("/send/confirmation", validatekey_1.validateKey, email_controller_1.EmailController.sendConfirmationEmail);
