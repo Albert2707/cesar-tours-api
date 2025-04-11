@@ -8,6 +8,20 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
       - name: Clonar el repositorio
         uses: actions/checkout@v3
@@ -25,17 +39,24 @@ jobs:
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
-        
+
+      - name: Esperar a que MySQL esté listo
+        run: |
+          for i in {1..10}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; then
+              break
+            fi
+            sleep 5
+          done
+
       - name: Ejecutar pruebas
         run: pnpm test
         env:
           NODE_ENV: test
+          MYSQL_PUBLIC_URL: mysql://root:root@127.0.0.1:3306/test_db
 
       - name: Construir aplicación
         run: pnpm build
 
       - name: Construir imagen Docker
         run: docker build -t cesar-app:${{ github.sha }} .
-        
-      # Añade aquí los pasos de despliegue según tu infraestructura
-      # Por ejemplo, publicar a Docker Hub o desplegar en un servidor

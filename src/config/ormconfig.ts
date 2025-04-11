@@ -11,5 +11,4 @@ export const dataSource = new DataSource({
     entities: ["src/entity/**/*.ts"],
     migrations: ["src/migrations/*.ts"],
     migrationsTableName: "migrations",
-    charset: "utf8mb4"
 })
