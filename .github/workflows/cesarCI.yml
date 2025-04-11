@@ -1,4 +1,4 @@
-name: App CI
+name: App CI/CD
 
 on:
   push:
@@ -28,4 +28,4 @@ jobs:
         run: pnpm test
 
       - name: Construir imagen Docker
-        run: docker build -t cesar-app:latest .
+        run: docker build -t cesar-app:${{ github.sha }} .
