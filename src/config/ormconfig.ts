@@ -6,6 +6,7 @@ export const dataSource = new DataSource({
     type: "mysql",
     url:MYSQL_PUBLIC_URL,
     logger: 'file',
+    dropSchema:NODE_ENV === 'test',
     synchronize: NODE_ENV === "dev"|| NODE_ENV === 'test' ? true : false,
     logging: NODE_ENV === "dev"|| NODE_ENV === 'test' ? false : false,
     entities: ["src/entity/**/*.ts"],
