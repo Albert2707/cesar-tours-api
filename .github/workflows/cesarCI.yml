@@ -26,10 +26,10 @@ jobs:
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
         
-    #   - name: Ejecutar pruebas
-    #     run: pnpm test
-    #     env:
-    #       NODE_ENV: test
+      - name: Ejecutar pruebas
+        run: pnpm test
+        env:
+          NODE_ENV: test
 
       - name: Construir aplicación
         run: pnpm build
