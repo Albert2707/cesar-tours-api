@@ -88,6 +88,7 @@ export class OrderController {
     try {
       const order = dataSource.getRepository(Order);
       const customer = dataSource.getRepository(Customer);
+      console.log(req.body)
       const { name, lastName, email, phone, optionalPhone, countryId, formatted_origin_address, formatted_destination_address, origin_lat, destination_lat, origin_lng, destination_lng } = req.body;
       req.body;
       const newCustomer = customer.create({

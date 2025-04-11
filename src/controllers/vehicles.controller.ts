@@ -54,8 +54,8 @@ export class VehiclesController {
     next: NextFunction
   ): Promise<any> => {
     try {
-      const { skip = 1, limit = 5, status } = req.query;
-
+      const { skip = 1, limit = 5, status="all"} = req.query; // Página 1 por defecto
+      console.log(status)
       let whereClause: any = {};
       if (status !== "all") {
         whereClause.status = Number(status);
