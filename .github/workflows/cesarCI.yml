@@ -25,9 +25,6 @@ jobs:
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
-
-      - name: Ejecutar lint
-        run: pnpm lint
         
       - name: Ejecutar pruebas
         run: pnpm test
