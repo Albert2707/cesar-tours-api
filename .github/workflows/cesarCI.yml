@@ -12,20 +12,33 @@ jobs:
       - name: Clonar el repositorio
         uses: actions/checkout@v3
 
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
       - name: Configurar Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'pnpm'
 
-      - name: Instalar pnpm
-        run: npm install -g pnpm
-
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
 
+      - name: Ejecutar lint
+        run: pnpm lint
+        
       - name: Ejecutar pruebas
         run: pnpm test
+        env:
+          NODE_ENV: test
+
+      - name: Construir aplicación
+        run: pnpm build
 
       - name: Construir imagen Docker
         run: docker build -t cesar-app:${{ github.sha }} .
+        
+      # Añade aquí los pasos de despliegue según tu infraestructura
+      # Por ejemplo, publicar a Docker Hub o desplegar en un servidor
