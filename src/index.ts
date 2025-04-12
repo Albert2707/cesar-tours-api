@@ -19,7 +19,7 @@ import { countriesRouter } from "./routes/countries.route";
 import { config } from "dotenv";
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
-const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev","https://cesar-tours-web.onrender.com"];
+const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev","https://cesar-tours-web.onrender.com","http://186.6.94.35","https://186.6.94.35"];
 config();
 const options: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: Function) => {
