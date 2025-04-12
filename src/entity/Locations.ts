@@ -5,13 +5,13 @@ export class Location {
     @PrimaryGeneratedColumn("uuid")
     location_id: string;
 
-    @Column()
+    @Column({default:"N/A"})
     formatted_address: string
 
-    @Column({type:"decimal", precision: 10, scale: 8})
+    @Column({type:"decimal", precision: 10, scale: 8, default:0})
     lat: number
 
-    @Column({type:"decimal", precision: 10, scale: 8})
+    @Column({type:"decimal", precision: 10, scale: 8, default:0})
     lng: number
 
     @CreateDateColumn({ name: "created_at" })

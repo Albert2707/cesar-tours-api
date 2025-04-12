@@ -6,9 +6,9 @@ export const dataSource = new DataSource({
     type: "mysql",
     url:MYSQL_PUBLIC_URL,
     logger: 'file',
-    synchronize: NODE_ENV === "dev" ? true : false,
-    logging: NODE_ENV === "dev" ? false : false,
-    entities: ["dist/entity/**/*.js"],
-    migrations: ["dist/migrations/*.js"],
+    synchronize: NODE_ENV === "dev"? true : false,
+    logging: NODE_ENV === "dev"|| NODE_ENV === 'test' ? false : false,
+    entities: ["src/entity/**/*.ts"],
+    migrations: ["src/migrations/*.ts"],
     migrationsTableName: "migrations",
 })
