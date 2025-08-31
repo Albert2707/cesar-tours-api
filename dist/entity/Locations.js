@@ -19,15 +19,15 @@ __decorate([
     __metadata("design:type", String)
 ], Location.prototype, "location_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ default: "N/A" }),
     __metadata("design:type", String)
 ], Location.prototype, "formatted_address", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 8 }),
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 8, default: 0 }),
     __metadata("design:type", Number)
 ], Location.prototype, "lat", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 8 }),
+    (0, typeorm_1.Column)({ type: "decimal", precision: 10, scale: 8, default: 0 }),
     __metadata("design:type", Number)
 ], Location.prototype, "lng", void 0);
 __decorate([

@@ -76,6 +76,7 @@ OrderController.createOrder = async (req, res, next) => {
     try {
         const order = ormconfig_1.dataSource.getRepository(Order_entity_1.Order);
         const customer = ormconfig_1.dataSource.getRepository(Customer_entity_1.Customer);
+        console.log(req.body);
         const { name, lastName, email, phone, optionalPhone, countryId, formatted_origin_address, formatted_destination_address, origin_lat, destination_lat, origin_lng, destination_lng } = req.body;
         req.body;
         const newCustomer = customer.create({
