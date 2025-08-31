@@ -6,8 +6,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VehiclesController = void 0;
 const ormconfig_1 = require("../config/ormconfig");
-const typeorm_1 = require("typeorm");
 const Vehicles_entity_1 = require("../entity/Vehicles.entity");
+const typeorm_1 = require("typeorm");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const validateBody_1 = require("../helpers/validateBody");
@@ -104,7 +104,8 @@ VehiclesController.getVehiclesPublic = async (req, res, next) => {
 };
 VehiclesController.getAllVehiclesAdmin = async (req, res, next) => {
     try {
-        const { skip = 1, limit = 5, status } = req.query;
+        const { skip = 1, limit = 5, status = "all" } = req.query; // Página 1 por defecto
+        console.log(status);
         let whereClause = {};
         if (status !== "all") {
             whereClause.status = Number(status);
