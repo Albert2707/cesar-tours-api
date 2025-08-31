@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { dataSource } from "../config/ormconfig";
-import { Brackets, MoreThanOrEqual } from "typeorm";
 import { Vehicle } from "../entity/Vehicles.entity";
+import { Brackets, MoreThanOrEqual } from "typeorm";
 import path from "path";
 import fs from "fs";
 import { joiSchemaCreateVehicle } from "../helpers/validateBody";
