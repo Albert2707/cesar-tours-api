@@ -52,7 +52,7 @@ const fileStorage = multer.diskStorage({
 
 app.use(multer({ storage: fileStorage, limits: { fileSize: maxSize } }).single("image"));
 app.use('/public', express.static(path.join(__dirname, '../public')));
-app.use(limiter)
+// app.use(limiter) comment this line to test with owasp zap
 app.use(morgan('dev'))
 app.use(helmet())
 app.use(cookieParser());
