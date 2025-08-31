@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+.git
+Dockerfile.yml
+pnpm-lock.yaml # solo si lo estás copiando manualmente después

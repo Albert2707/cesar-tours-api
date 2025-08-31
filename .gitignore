@@ -1,5 +1,4 @@
-dist
-.env 
+.env
+.env.*
 node_modules
-public 
 *.log

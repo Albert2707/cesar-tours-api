@@ -22,23 +22,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importStar(require("express"));
-const dotenv_1 = require("dotenv");
 const email_route_1 = require("./routes/email.route");
 const cors_1 = __importDefault(require("cors"));
+const fs_1 = __importDefault(require("fs"));
 const ormconfig_1 = require("./config/ormconfig");
 require("reflect-metadata");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -48,31 +39,65 @@ const order_route_1 = require("./routes/order.route");
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const limiter_1 = require("./middlewares/limiter");
-(0, dotenv_1.config)();
+const path_1 = __importDefault(require("path"));
+const uuid_1 = require("./helpers/uuid");
+const multer_1 = __importDefault(require("multer"));
+const errorHandler_1 = require("./middlewares/errorHandler");
+const countries_route_1 = require("./routes/countries.route");
+const dotenv_1 = require("dotenv");
+const maxSize = 5 * 1024 * 1024;
 const app = (0, express_1.default)();
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173", "https://cesar.albertdev.dev", "https://cesar-tours-web.onrender.com"];
+(0, dotenv_1.config)();
 const options = {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", 'resendapikey'],
 };
+const uploadPath = path_1.default.join(__dirname, "../public/assets/images");
+if (!fs_1.default.existsSync(uploadPath)) {
+    fs_1.default.mkdirSync(uploadPath, { recursive: true });
+    console.log("📁 Carpeta creada:", uploadPath);
+}
+// Configuración de multer
+const fileStorage = multer_1.default.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, (0, uuid_1.generateCustomOrderNum)() + "-" + file.originalname);
+    },
+});
+app.use((0, multer_1.default)({ storage: fileStorage, limits: { fileSize: maxSize } }).single("image"));
+app.use('/public', express_1.default.static(path_1.default.join(__dirname, '../public')));
 app.use(limiter_1.limiter);
 app.use((0, morgan_1.default)('dev'));
 app.use((0, helmet_1.default)());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)(options));
+app.options("*", (0, cors_1.default)(options));
 app.use((0, express_1.json)());
 app.use("/api/email", email_route_1.emailRouter);
 app.use("/api/vehicle", vehicle_route_1.vehicleRouter);
 app.use("/api/user", user_route_1.userRouter);
 app.use("/api/order", order_route_1.orderRouter);
+app.use("/api/countries", countries_route_1.countriesRouter);
+app.use(errorHandler_1.ErrorHandler);
 ormconfig_1.dataSource
     .initialize()
-    .then(() => __awaiter(void 0, void 0, void 0, function* () {
+    .then(async () => {
     app.listen(process.env.PORT || 3000, () => {
         console.log("Server is runnnig on port:" + process.env.PORT || 3000);
     });
-}))
+})
     .catch((err) => {
-    console.log(err.message);
     throw new Error(err.message);
 });

@@ -23,11 +23,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.emailRouter = void 0;
-const express = __importStar(require("express"));
-const email_controller_1 = require("../controllers/email.controller");
-const validatekey_1 = require("../middlewares/validatekey");
-const router = express.Router();
-exports.emailRouter = router;
-router.post("/send", validatekey_1.validateKey, email_controller_1.EmailController.postSendEmail);
-router.post("/send/confirmation", validatekey_1.validateKey, email_controller_1.EmailController.sendConfirmationEmail);
+exports.Encrypt = void 0;
+const dotenv = __importStar(require("dotenv"));
+const jwt = __importStar(require("jsonwebtoken"));
+const bcrypt = __importStar(require("bcryptjs"));
+dotenv.config();
+const { JWT_SECRET = "" } = process.env;
+class Encrypt {
+    static async encryptpass(password) {
+        return bcrypt.hash(password, 12);
+    }
+    static comparepassword(hashPassword, password) {
+        return bcrypt.compare(password, hashPassword);
+    }
+    static generateToken(payload) {
+        return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+    }
+}
+exports.Encrypt = Encrypt;
