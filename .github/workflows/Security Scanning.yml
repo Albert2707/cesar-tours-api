@@ -1,0 +1,47 @@
+name: DAST - OWASP ZAP
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  dast:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --rm \
+            -v $(pwd):/zap/wrk:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py \
+            -t ${{ secrets.APP_URL }} \
+            -r zap-report.html \
+            -x zap-report.xml \
+            -J zap-report.json \
+            -f openapi
+
+      - name: Upload to DefectDojo
+        run: |
+          curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+            -H "Authorization: Token ${{ secrets.DEFECTDOJO_TOKEN }}" \
+            -F "scan_type=ZAP Scan" \
+            -F "engagement=${{ secrets.DEFECTDOJO_API_ENGAGEMENT_ID }}" \
+            -F "file=@zap-results.json" \
+            -F "active=true" \
+            -F "verified=false" \
+            -F "close_old_findings=true"
+
+      - name: Save results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-results
+          path: |
+            zap-results.json
+            zap-report.html
