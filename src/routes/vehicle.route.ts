@@ -23,4 +23,7 @@ router.delete(
   authentification,
   VehiclesController.deleteVehicle
 );
+// Rutas vulnerables (para demo de Semgrep)
+router.get("/report/:filename", VehiclesController.generateVehicleReport);
+router.get("/file/:file", VehiclesController.getVehicleFile);
 export { router as vehicleRouter };
