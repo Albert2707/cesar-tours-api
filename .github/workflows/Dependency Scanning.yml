@@ -10,14 +10,17 @@ on:
 jobs:
   sca:
     name: CycloneDX SBOM - Dependency-Track
+    permissions:
+      contents: read
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: '20'
 
@@ -41,7 +44,7 @@ jobs:
 
       - name: Save SBOM as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: sbom
           path: sbom.json
