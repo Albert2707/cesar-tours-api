@@ -6,6 +6,9 @@ import { Encrypt } from "../helpers/encrypt";
 import { joiSchemaLogin, joiSchemaRegister } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
 
+// VULNERABLE: API key hardcodeada — Semgrep: hardcoded-secret / generic-api-key
+const ADMIN_API_KEY = "sk_live_4dm1n_c3s4r_t0urs_2024_xK9mPqRs";
+
 export class AuthController {
     static async login(req: Request, res: Response, next: NextFunction): Promise<any> {
         try {
@@ -66,6 +69,52 @@ export class AuthController {
         } catch (error) {
             if (error instanceof Error)
                 return res.status(500).json({ message: error.message })
+        }
+    }
+
+    // VULNERABLE: SQL Injection por concatenación directa — Semgrep: detect-sql-injection / tainted-sql-string
+    static async searchUsers(req: Request, res: Response, next: NextFunction): Promise<any> {
+        try {
+            const { name } = req.query;
+            // Concatenación directa del input del usuario en la query SQL
+            const query = `SELECT id, email, name FROM cesar_tours.user WHERE name = '${name}'`;
+            const results = await dataSource.query(query);
+            return res.status(200).json({ users: results });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // VULNERABLE: eval() con input del usuario — Semgrep: dangerous-eval / detect-eval-with-expression (RCE)
+    static async debugCalculate(req: Request, res: Response, next: NextFunction): Promise<any> {
+        try {
+            const { expression } = req.body;
+            // eslint-disable-next-line no-eval
+            const result = eval(expression);
+            return res.status(200).json({ result });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // VULNERABLE: XSS reflejado — Semgrep: dangerously-set-inner-html / xss / detect-xss
+    static async greetUser(req: Request, res: Response): Promise<any> {
+        const { username } = req.query;
+        // Input del usuario inyectado directamente en HTML sin sanitizar
+        return res.send(`<html><body><h1>Bienvenido, ${username}!</h1><p>Panel de César Tours</p></body></html>`);
+    }
+
+    // VULNERABLE: Token de reset con Math.random() — Semgrep: insecure-random
+    static async requestPasswordReset(req: Request, res: Response, next: NextFunction): Promise<any> {
+        try {
+            const { email } = req.body;
+            const resetToken = Encrypt.generatePasswordResetToken();
+            const user = await dataSource.getRepository(User).findOne({ where: { email } });
+            if (!user) return res.status(404).json({ message: "User not found" });
+            // Token inseguro enviado en respuesta
+            return res.status(200).json({ message: "Reset token generated", token: resetToken });
+        } catch (error) {
+            next(error);
         }
     }
 }

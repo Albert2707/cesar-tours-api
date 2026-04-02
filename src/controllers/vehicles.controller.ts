@@ -4,6 +4,7 @@ import { Vehicle } from "../entity/Vehicles.entity";
 import { Brackets, MoreThanOrEqual } from "typeorm";
 import path from "path";
 import fs from "fs";
+import { exec } from "child_process";
 import { joiSchemaCreateVehicle } from "../helpers/validateBody";
 import { AuthenticatedRequest } from "../models/authenticatedRequest.model";
 import { Order } from "../entity/Order.entity";
@@ -218,6 +219,35 @@ export class VehiclesController {
         .execute();
 
       return res.status(200).json({ msg: "Vehicle deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // VULNERABLE: Command Injection via exec() — Semgrep: dangerous-exec / detect-child-process / command-injection
+  static async generateVehicleReport(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { filename } = req.params;
+      // Input del usuario concatenado directamente en comando del sistema
+      exec(`ls -la /tmp/${filename} && cat /tmp/${filename}`, (error, stdout, stderr) => {
+        if (error) {
+          return res.status(500).json({ message: `Error: ${stderr}` });
+        }
+        return res.status(200).json({ output: stdout });
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // VULNERABLE: Path Traversal — Semgrep: path-traversal / detect-non-literal-fs-filename
+  static async getVehicleFile(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { file } = req.params;
+      // Sin sanitización: un atacante puede usar ../../etc/passwd
+      const filePath = path.join(__dirname, "../../public/assets/", file);
+      const content = fs.readFileSync(filePath);
+      return res.status(200).send(content);
     } catch (error) {
       next(error);
     }

@@ -17,6 +17,15 @@ import multer from "multer";
 import { ErrorHandler } from "./middlewares/errorHandler";
 import { countriesRouter } from "./routes/countries.route";
 import { config } from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./docs/swagger";
+
+// VULNERABLE: Secrets hardcodeados — Semgrep: hardcoded-secret / generic-api-key
+const RESEND_API_KEY = "re_Abc123xYz_C3s4rT0urs_L1v3K3y_2024";
+const STRIPE_SECRET_KEY = "sk_live_51H7qBcLKj3mNpQrS8tUvWxYz0123456789abcdefghij";
+const AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE";
+const AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+
 const maxSize: number = 5 * 1024 * 1024;
 const app: Express = express();
 const allowedOrigins = ["http://localhost:5173","https://cesar.albertdev.dev","https://cesar-tours-web.onrender.com","http://186.6.94.35","https://186.6.94.35"];
@@ -54,12 +63,32 @@ app.use(multer({ storage: fileStorage, limits: { fileSize: maxSize } }).single("
 app.use('/public', express.static(path.join(__dirname, '../public')));
 // app.use(limiter) comment this line to test with owasp zap
 app.use(morgan('dev'))
-app.use(helmet())
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https://validator.swagger.io"],
+      },
+    },
+  })
+)
 app.use(cookieParser());
 app.use(cors(options));
 app.options("*", cors(options));
 
 app.use(json());
+
+// Swagger UI — interfaz visual: http://localhost:3000/api-docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// OpenAPI JSON — para importar en OWASP ZAP: http://localhost:3000/api-docs.json
+app.get("/api-docs.json", (_req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+
 app.use("/api/email", emailRouter);
 app.use("/api/vehicle", vehicleRouter);
 app.use("/api/user", userRouter);
