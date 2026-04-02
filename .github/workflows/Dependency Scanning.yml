@@ -1,0 +1,47 @@
+name: SCA - Dependency-Track
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sca:
+    name: CycloneDX SBOM - Dependency-Track
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate SBOM
+        run: |
+          npm install -g @cyclonedx/cyclonedx-npm
+          cyclonedx-npm --output-format JSON \
+                        --spec-version 1.4 \
+                        --output-file sbom.json
+
+      - name: Upload SBOM to Dependency-Track
+        run: |
+          curl -X POST "${{ secrets.DT_URL }}/api/v1/bom" \
+            -H "X-Api-Key: ${{ secrets.DT_API_KEY }}" \
+            -H "Content-Type: multipart/form-data" \
+            -F "project=${{ secrets.DT_PROJECT_UUID }}" \
+            -F "bom=@sbom.json"
+
+      - name: Save SBOM as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
